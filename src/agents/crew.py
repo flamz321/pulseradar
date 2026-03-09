@@ -1,26 +1,59 @@
 from crewai import Agent, Task, Crew
 from langchain_openai import ChatOpenAI
-from .tools import get_top_movers, analyze_specific_market
-from .prompts import ANALYST_SYSTEM_PROMPT
+from .tools import get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market
 import os
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2, api_key=os.getenv("OPENAI_API_KEY"))
+# LLM configuration (uses OPENAI_API_KEY from .env)
+llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0.3,
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
-analyst = Agent(
-    role="PolyPulse Senior Analyst",
-    goal="Turn live Polymarket trading activity into clear global sentiment insights",
-    backstory=ANALYST_SYSTEM_PROMPT,
-    tools=[get_top_movers, analyze_specific_market],
+# Main predictive agent
+oracle = Agent(
+    role="PulseRadar Predictive Oracle",
+    goal="Combine live real-money data from Polymarket and Kalshi with real-time social/news signals to forecast how prediction markets will move",
+    backstory=(
+        "You are an elite prediction-market forecaster. "
+        "You correlate external sentiment spikes (news, X/Twitter, web buzz) "
+        "with actual trading flow and probabilities from Polymarket and Kalshi "
+        "to predict probability shifts with high conviction."
+    ),
+    tools=[get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market],
     llm=llm,
-    verbose=True
+    verbose=True,
+    allow_delegation=False  # single focused agent for now
 )
 
 def run_pulse_crew(user_query: str) -> str:
+    """
+    Run the predictive analysis crew for a user question.
+    Returns a markdown-formatted report.
+    """
     task = Task(
-        description=f"Analyze current data and answer: {user_query}. "
-                    "Use tools aggressively. Be concise and insightful.",
-        agent=analyst,
-        expected_output="Professional markdown report with bullets, tables, and a final Pulse rating."
+        description=(
+            f"Analyze and PREDICT market reaction for: '{user_query}'. "
+            "Use external signal scanning + live Polymarket/Kalshi data. "
+            "Always include: current probabilities, key external signals, "
+            "reasoning, and a clear forecast of expected odds move with timeframe."
+        ),
+        agent=oracle,
+        expected_output=(
+            "Professional markdown report including:\n"
+            "- Market(s) matched\n"
+            "- Current probabilities and platform\n"
+            "- Summary of latest external buzz\n"
+            "- Reasoning and correlation\n"
+            "- Final forecast: 'Expected Move: +X% / -Y% in Z hours' with confidence"
+        )
     )
-    crew = Crew(agents=[analyst], tasks=[task], verbose=1)
-    return crew.kickoff()
+
+    crew = Crew(
+        agents=[oracle],
+        tasks=[task],
+        verbose=2  # detailed logging during development
+    )
+
+    result = crew.kickoff()
+    return result
