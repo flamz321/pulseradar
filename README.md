@@ -1,35 +1,56 @@
 # PulseRadar 🌍📡
 
-**AI Predictive Sentiment Radar** — Real-money conviction from Polymarket + Kalshi + live social/news intelligence = forecasts of how prediction markets will actually move.
+**AI-Powered Predictive Sentiment Radar**  
+Real-money conviction from **Polymarket** + **Kalshi** meets live internet-wide intelligence.
 
-PulseRadar is the only open-source tool that doesn’t just show current odds — it actively scans X (Twitter), news headlines, and public data in real time, then deploys autonomous CrewAI agents to **predict** sentiment shifts and probability moves before they happen on both Polymarket and Kalshi.
+PulseRadar deploys autonomous **CrewAI Predictive Oracle Agents** that **scour the entire internet in real time** — X (Twitter), Facebook, TikTok, Instagram, major news headlines from every country, blogs, forums, and thousands of other public sources — to understand exactly how the world is reacting to breaking events.
 
-Polls lie. Social media is noisy. Prediction markets show real money. PulseRadar shows what happens next.
+These agents then correlate that global reaction data with **actual skin-in-the-game trading activity** on Polymarket and Kalshi to detect patterns and **predict probability moves** before they appear in the markets.
+
+Polls lie. Social media is noisy. Headlines are slow.  
+PulseRadar shows you **what the world is actually feeling** — and **what the markets will do next**.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Deploy-blue?logo=streamlit)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-blue?logo=streamlit)](https://streamlit.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ✨ What Makes PulseRadar Unique
+**Built for crypto traders, prediction-market degens, macro analysts, and anyone who wants an edge from real-world sentiment patterns.**
 
-- **Unified Live Pulse** — Real-time probabilities, volume spikes, and whale moves from **Polymarket + Kalshi**
-- **Multi-Source Radar** — Scans X posts, news headlines, and web in real time
-- **Predictive Oracle Agents** — CrewAI agents that correlate external signals with live market data and forecast “+12% odds move expected in 6h”
-- **Global Sentiment Indices** — Politics, Crypto, Macro, Geopolitics, Culture across both platforms
-- **Anomaly Detection + Alerts** — Catches divergences before the crowd
+### Why PulseRadar Is Different
 
-## Features
+Most tools only show you current odds.  
+PulseRadar is the only open-source project that:
 
-- 🔍 Combined market discovery from Polymarket & Kalshi
-- 📈 Real-time prices, volume, open interest
-- 🧠 Autonomous AI agents with external signal scanning
-- 📊 Category sentiment indices & predictive reports
-- 🤖 Natural-language chat: “Predict reaction to Fed rate cut news”
+- **Scans the entire internet in real time** — X posts, Facebook discussions, TikTok & Instagram virality, global news wires, and every other public source
+- **Builds live reaction patterns** — Detects sudden sentiment explosions the moment they happen anywhere online
+- **Correlates with real money** — Matches those global reactions against live volume, whale flows, and probability shifts on **Polymarket** and **Kalshi**
+- **Delivers predictive forecasts** — AI agents output clear predictions like “+12% odds move expected on Fed rate cut market in next 6–12 hours”
 
-## Quick Start
+### ✨ Core Features
+
+- **Unified Live Markets** — Polymarket + Kalshi in one clean dashboard
+- **Global Sentiment Indices** — Real-time pulse scores across Politics, Crypto, Macro, Geopolitics, Culture
+- **Predictive Oracle Agents** — Ask anything in plain English and get instant analysis + forecasts powered by **your choice of frontier model**
+- **Internet-Wide Signal Scanning** — Continuously monitors X, Facebook, TikTok, Instagram, worldwide news, and public web sources
+- **Anomaly & Pattern Detection** — Flags when online buzz is about to move real-money markets
+
+### LLM Support – Works with Any Major Model
+
+PulseRadar is **fully LLM-agnostic**. You can run the Predictive Oracle Agents with:
+
+- **OpenAI** (gpt-4o, o1, etc.) – default
+- **Anthropic Claude** (Claude 3.5 Sonnet / Opus) – best for deep reasoning
+- **xAI Grok** – truth-seeking, uncensored, perfect for crypto
+- **Groq** – blazing-fast inference (Llama 3.1, Mixtral)
+- **Google Gemini** – strong multimodal & news understanding
+- Any other model supported by LangChain
+
+### Quick Start
 
 ```bash
 git clone https://github.com/flamz321/PulseRadar.git
 cd PulseRadar
 pip install -r requirements.txt
-cp .env.example .env
-streamlit run src/dashboard.py
+
+# Optional extras for other LLMs
+pip install langchain-anthropic langchain-xai langchain-groq langchain-google-genai
