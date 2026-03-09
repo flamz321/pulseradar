@@ -1,0 +1,8 @@
+streamlit
+pandas
+plotly
+requests
+py-clob-client
+crewai
+langchain-openai
+python-dotenv
