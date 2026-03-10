@@ -1,9 +1,11 @@
 from crewai import Agent, Task, Crew
 from langchain_openai import ChatOpenAI
-from .tools import get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market
 import os
 
-# LLM configuration (uses OPENAI_API_KEY from .env)
+# Absolute imports (no relative .tools)
+from tools import get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market
+
+# LLM configuration (uses keys from .env or secrets)
 llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.3,
@@ -23,7 +25,7 @@ oracle = Agent(
     tools=[get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market],
     llm=llm,
     verbose=True,
-    allow_delegation=False  # single focused agent for now
+    allow_delegation=False
 )
 
 def run_pulse_crew(user_query: str) -> str:
@@ -52,7 +54,7 @@ def run_pulse_crew(user_query: str) -> str:
     crew = Crew(
         agents=[oracle],
         tasks=[task],
-        verbose=2  # detailed logging during development
+        verbose=2
     )
 
     result = crew.kickoff()
