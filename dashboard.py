@@ -1,30 +1,17 @@
 import sys
 import os
 
-# ────────────────────────────────────────────────
-# Fix for ModuleNotFoundError when dashboard.py is in root
-# but other modules are in src/
-# ────────────────────────────────────────────────
+# Add src/ folder to sys.path (Streamlit Cloud needs this explicit add)
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+if src_path not in sys.path:
+    sys.path.insert(0, src_path)
 
-# Get absolute path to this file (dashboard.py in root)
-current_file_dir = os.path.dirname(os.path.abspath(__file__))
+# Debug prints (remove or comment later)
+print("src_path added:", src_path)
+print("sys.path includes src:", any('src' in p for p in sys.path))
+print("cwd:", os.getcwd())
 
-# Get absolute path to src/ folder (sibling to dashboard.py)
-src_dir = os.path.abspath(os.path.join(current_file_dir, 'src'))
-
-# Add src/ to sys.path if not already present
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
-
-# Optional debug prints (visible in logs — comment out later if desired)
-print("Added src/ to sys.path:", src_dir)
-print("Current sys.path:", sys.path)
-print("Current working directory:", os.getcwd())
-
-# ────────────────────────────────────────────────
-# Now import modules from src/
-# ────────────────────────────────────────────────
-
+# Absolute imports from src/
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
 from agents.crew import run_pulse_crew
