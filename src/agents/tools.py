@@ -1,9 +1,10 @@
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
-from src.fetcher import get_active_markets, get_trades
-from src.sentiment import calculate_sentiment_score
 
-# Initialize the free search tool (no API key needed)
+# Absolute imports from root/src/
+from fetcher import get_active_markets, get_trades
+from sentiment import calculate_sentiment_score
+
 search = DuckDuckGoSearchRun()
 
 @tool
@@ -13,7 +14,7 @@ def get_top_movers(limit: int = 10) -> str:
     df = calculate_sentiment_score(df)
     top = df.nlargest(limit, 'sentiment_score')[[
         'question', 'category', 'yes_price', 'volumeNum', 
-        'oneDayPriceChange', 'source'  # added source column for clarity
+        'oneDayPriceChange', 'source'
     ]]
     top['yes_price'] = top['yes_price'].apply(lambda x: f"{x:.1%}")
     return top.to_markdown(index=False)
@@ -22,14 +23,12 @@ def get_top_movers(limit: int = 10) -> str:
 def scan_external_signals(query: str) -> str:
     """Scan latest news headlines, X/Twitter posts, and web for real-time sentiment on any topic."""
     results = search.run(f"{query} (news OR twitter OR X.com OR breaking) last 24 hours")
-    # Truncate to avoid token overflow while keeping useful context
     return f"Latest external signals on '{query}':\n{results[:1200]}..."  
 
 @tool
 def predict_market_reaction(market_keyword: str) -> str:
     """Full predictive analysis: external signals + live Polymarket/Kalshi data → forecast of probability move."""
     df = get_active_markets(limit=50)
-    # Simple fuzzy match (improve later with embeddings if needed)
     match = df[df['question'].str.contains(market_keyword, case=False, na=False)]
     if match.empty:
         return "No matching market found on Polymarket or Kalshi."
@@ -40,14 +39,14 @@ def predict_market_reaction(market_keyword: str) -> str:
     
     external = scan_external_signals(market_keyword)
     
-    # Basic heuristic forecast (you can make this smarter later with more data/LLM reasoning)
     forecast = "Strong bullish momentum likely (+5–15% odds shift in next 6–12h)" if "bullish" in external.lower() or "positive" in external.lower() \
           else "Bearish pressure building (-5–12% odds shift likely)" if "bearish" in external.lower() or "negative" in external.lower() \
           else "Neutral to mild movement expected (±3–8% odds in next 24h)"
     
     return f"""**PREDICTION FOR: {market_keyword}** ({platform})
 Current Yes Probability: {current_prob}
-Volume: ${row['volumeNum']:,.0f} (24h change: {row.get('oneDayPriceChange', 0):.2%})
+Volume: ${row['volumeNum']:,.0f}
+24h Change: {row.get('oneDayPriceChange', 0):.2%}
 Latest external buzz (news/X/web):  
 {external}
 
