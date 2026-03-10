@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PulseRadar Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0f1117; /* match your dark theme */
+      color: white;
+      font-family: 'Inter', system-ui, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      display: block;
+      background: transparent;
+    }
+    /* Hide Streamlit header, footer, toolbar, padding */
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Replace with YOUR real Streamlit URL -->
+  <iframe src="https://pulseradar.streamlit.app/?embed=true" 
+          title="PulseRadar Dashboard"
+          allowfullscreen
+          scrolling="yes"></iframe>
+
+  <script>
+    // Optional: force remove Streamlit branding after load (sometimes needed)
+    window.addEventListener('load', () => {
+      const iframe = document.querySelector('iframe');
+      iframe.contentWindow.postMessage({
+        type: 'hideStreamlitElements'
+      }, '*');
+    });
+  </script>
+</body>
+</html>
