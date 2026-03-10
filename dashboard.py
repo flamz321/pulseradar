@@ -338,15 +338,27 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    crypto_df = df[df['category'] == 'Crypto']
-    crypto_sentiment = crypto_df['sentiment'].mean() if not crypto_df.empty else 0.5
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-icon">₿</div>
-        <div class="metric-value">{crypto_sentiment:.0%}</div>
-        <div class="metric-label">Crypto Sentiment</div>
-    </div>
-    """, unsafe_allow_html=True)
+        # Mini Category breakdown
+        cat_group = df.groupby('category')['sentiment'].mean().reset_index()
+        fig2 = px.bar(cat_group, x='category', y='sentiment', text_auto='.2f', color_discrete_sequence=['#8C9EFF'])
+        
+        # FIX: Flat layout update to avoid dictionary validation clashes
+        fig2.update_layout(
+            title_text="Sentiment by Category",
+            title_font=dict(color='#8E8EA0', size=16),
+            paper_bgcolor='rgba(0,0,0,0)', 
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color='white', 
+            height=300, 
+            showlegend=False, 
+            margin=dict(l=20, r=20, t=50, b=20)
+        )
+        
+        # FIX: Update axes independently using standard Plotly Express methods
+        fig2.update_xaxes(showgrid=False, tickcolor='#4A4A5A')
+        fig2.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', range=[0, 1])
+        
+        st.plotly_chart(fig2, use_container_width=True)
 
 with col3:
     st.markdown(f"""
