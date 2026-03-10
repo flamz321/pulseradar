@@ -1,20 +1,28 @@
 import sys
 import os
 
-# Add the project root to sys.path so src/ is found
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Force add repo root to sys.path (fixes No module named 'src')
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
 
-# Now your imports will work
+# Now safe imports
 from src.fetcher import get_active_markets
 from src.sentiment import calculate_sentiment_score, get_category_indices
 from src.agents.crew import run_pulse_crew
 
 import streamlit as st
 import plotly.express as px
-import os
-from src.fetcher import get_active_markets
-from src.sentiment import calculate_sentiment_score, get_category_indices
-from src.agents.crew import run_pulse_crew
+import os  # already imported above, but safe to keep
+
+# Page config
+st.set_page_config(page_title="PulseRadar", page_icon="📡", layout="wide")
+
+# Title & caption
+st.title("🌍 PulseRadar")
+st.caption("AI Predictive Sentiment Radar • Polymarket + Kalshi • Scans social/news to predict moves")
+
+
 
 # Page config
 st.set_page_config(
