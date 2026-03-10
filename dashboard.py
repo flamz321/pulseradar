@@ -135,14 +135,41 @@ with tab2:
 
 with tab3:
     st.subheader("🤖 Predictive Oracle Chat")
-    if not any(os.getenv(k) for k in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GROQ_API_KEY"]):
-        st.warning("Add LLM API key in Secrets to enable Oracle.")
+    
+    # Check for API key in both os.environ and st.secrets
+    has_openai = any([
+        os.getenv("OPENAI_API_KEY"),
+        st.secrets.get("OPENAI_API_KEY") if hasattr(st, "secrets") else None
+    ])
+    
+    has_anthropic = any([
+        os.getenv("ANTHROPIC_API_KEY"),
+        st.secrets.get("ANTHROPIC_API_KEY") if hasattr(st, "secrets") else None
+    ])
+    
+    has_groq = any([
+        os.getenv("GROQ_API_KEY"),
+        st.secrets.get("GROQ_API_KEY") if hasattr(st, "secrets") else None
+    ])
+    
+    if not (has_openai or has_anthropic or has_groq):
+        st.warning(
+            "⚠️ **No API keys found!**\n\n"
+            "To use the Predictive Oracle, you need to add an API key in "
+            "Streamlit Cloud Secrets:\n"
+            "1. Go to your app settings\n"
+            "2. Click on 'Secrets'\n"
+            "3. Add: `OPENAI_API_KEY = \"sk-...\"`\n\n"
+            "The dashboard will still show live markets without the Oracle."
+        )
     else:
-        st.info("Ask anything (e.g. 'Predict Fed rate reaction')")
-        if prompt := st.chat_input("Ask Oracle..."):
-            with st.spinner("Analyzing..."):
+        st.info("💡 Ask anything (e.g., 'Predict Fed rate reaction', 'What's moving in crypto?')")
+        
+        if prompt := st.chat_input("Ask the Oracle..."):
+            with st.spinner("🧠 Analyzing markets and scanning internet signals..."):
                 try:
                     report = run_pulse_crew(prompt)
                     st.markdown(report)
                 except Exception as e:
                     st.error(f"Prediction error: {str(e)}")
+                    st.info("This might be an API key issue. Check your Streamlit secrets.")
