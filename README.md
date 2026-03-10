@@ -1,5 +1,7 @@
 # PulseRadar 🌍📡
 
+CA: DfNtRE2eC6t3SRAHqpACrX3Nx6cgMsFQSCjpd57npump
+
 **AI-Powered Predictive Sentiment Radar**  
 Real-money conviction from **Polymarket** + **Kalshi** meets live internet-wide intelligence.
 
