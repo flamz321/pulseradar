@@ -86,9 +86,50 @@ with tab1:
 
 with tab2:
     st.subheader("Global Sentiment by Category")
-    indices = get_category_indices(df)
-    if not indices.empty:
-        st.dataframe(indices, use_container_width=True)
+    indices_df = get_category_indices(df)
+    
+    if not indices_df.empty:
+        # Style the dataframe for better visualization
+        styled_df = indices_df.style.format({
+            'Sentiment Score': '{:.3f}',
+            'Market Count': '{:.0f}'
+        }).background_gradient(
+            subset=['Sentiment Score'], 
+            cmap='RdYlGn', 
+            vmin=0, 
+            vmax=1
+        )
+        
+        st.dataframe(
+            styled_df, 
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Category": "Category",
+                "Sentiment Score": st.column_config.NumberColumn(
+                    "Sentiment Score",
+                    format="%.3f",
+                    help="0 = Bearish, 1 = Bullish"
+                ),
+                "Market Count": "Markets",
+                "Total Volume": "Total Volume"
+            }
+        )
+        
+        # Add a simple bar chart of sentiment scores
+        fig = px.bar(
+            indices_df[indices_df['Category'] != 'OVERALL'],
+            x='Category',
+            y='Sentiment Score',
+            color='Sentiment Score',
+            color_continuous_scale='RdYlGn',
+            range_color=[0, 1],
+            title="Sentiment Scores by Category",
+            height=400
+        )
+        fig.add_hline(y=0.5, line_dash="dash", line_color="gray", 
+                     annotation_text="Neutral")
+        st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No category data available in current fetch.")
 
