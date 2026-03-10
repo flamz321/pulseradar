@@ -3,8 +3,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
 import os
+import requests
 
-# Import our modules
+# Import our modules (will gracefully fail if not present)
 try:
     from fetcher import get_all_markets
     from sentiment import calculate_sentiment, get_category_sentiment
@@ -27,18 +28,16 @@ st.markdown("""
 
     /* BASE STREAMLIT OVERRIDES */
     .stApp {
-        background-color: #09090b; /* bg-zinc-950 */
+        background-color: #09090b; 
         background-image: radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.15) 0%, #09090b 70%);
         color: #ffffff;
         font-family: 'Inter', sans-serif;
     }
     
-    /* Push content down so it isn't hidden behind the fixed navbar */
     .appview-container .main .block-container {
         padding-top: 6rem !important; 
     }
     
-    /* Hide default Streamlit clutter */
     header {visibility: hidden;}
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -55,14 +54,14 @@ st.markdown("""
         left: 0;
         right: 0;
         z-index: 999999;
-        background: rgba(9, 9, 11, 0.75); /* bg-zinc-950/75 */
+        background: rgba(9, 9, 11, 0.75); 
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         font-family: 'Inter', sans-serif;
     }
     .nav-container {
-        max-width: 80rem; /* max-w-7xl */
+        max-width: 80rem; 
         margin: 0 auto;
         padding: 1rem 1.5rem;
         display: flex;
@@ -78,7 +77,7 @@ st.markdown("""
         width: 1.75rem;
         height: 1.75rem;
         border-radius: 0.5rem;
-        background: linear-gradient(to bottom right, #7c3aed, #10b981); /* violet-600 to emerald-500 */
+        background: linear-gradient(to bottom right, #7c3aed, #10b981); 
         display: flex;
         align-items: center;
         justify-content: center;
@@ -109,7 +108,7 @@ st.markdown("""
         transition: color 0.2s;
     }
     .nav-link:hover {
-        color: #34d399; /* emerald-400 */
+        color: #34d399; 
     }
     .nav-right {
         display: flex;
@@ -143,7 +142,7 @@ st.markdown("""
         transition: all 0.2s;
     }
     .btn-primary:hover {
-        background: #34d399; /* emerald-400 */
+        background: #34d399; 
         color: white;
     }
 
@@ -153,7 +152,7 @@ st.markdown("""
         font-size: 4rem;
         font-weight: 800;
         text-align: center;
-        background: linear-gradient(to right, #a78bfa, #34d399, #22d3ee); /* Landing page neon gradient */
+        background: linear-gradient(to right, #a78bfa, #34d399, #22d3ee); 
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.1;
@@ -174,13 +173,13 @@ st.markdown("""
 
     /* Metric Cards */
     .metric-card {
-        background: rgba(255, 255, 255, 0.03); /* Glass */
+        background: rgba(255, 255, 255, 0.03); 
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 1.5rem; /* rounded-3xl */
+        border-radius: 1.5rem; 
         padding: 24px;
         text-align: center;
         backdrop-filter: blur(16px);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Match landing page hover */
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
     }
     
     .metric-card:hover {
@@ -234,7 +233,7 @@ st.markdown("""
     }
 
     .market-tag {
-        color: #34d399; /* emerald-400 */
+        color: #34d399; 
         background: rgba(52, 211, 153, 0.1);
         padding: 4px 12px;
         border-radius: 9999px;
@@ -302,7 +301,7 @@ st.markdown("""
         display: inline-block;
         width: 10px;
         height: 10px;
-        background-color: #34d399; /* emerald-400 */
+        background-color: #34d399; 
         border-radius: 50%;
         animation: pulse 2s infinite;
         margin-right: 8px;
@@ -348,33 +347,67 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Data Loading (Mocked to be safe if modules aren't fully hooked up)
+# Data Loading (Live Kalshi Public API Data)
 @st.cache_data(ttl=300)
 def load_markets():
+    live_data = []
+    
+    # 1. Fetch Real-time data from Kalshi Public API
+    try:
+        url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open"
+        response = requests.get(url, headers={"Accept": "application/json"}, timeout=10)
+        
+        if response.status_code == 200:
+            kalshi_markets = response.json().get('markets', [])
+            
+            for m in kalshi_markets:
+                # Kalshi returns prices in cents (e.g., 61). Convert to decimal.
+                price_cents = m.get('yes_ask', m.get('last_price', 50))
+                yes_price = price_cents / 100.0 if price_cents and price_cents > 1 else price_cents
+                
+                vol = float(m.get('volume', 0))
+                title = m.get('title', m.get('ticker', 'Unknown Market'))
+                
+                live_data.append({
+                    'question': title,
+                    'category': 'Kalshi Live',
+                    'yes_price': yes_price,
+                    'volume': vol,
+                    'source': 'Kalshi',
+                    'sentiment': yes_price # Default sentiment proxy until mapped
+                })
+    except Exception as e:
+        print(f"Error fetching from Kalshi API: {e}")
+
+    # 2. Add local modules data (Polymarket or other files)
     try:
         raw_df = get_all_markets(100)
         if not raw_df.empty:
-            return calculate_sentiment(raw_df)
+            local_df = calculate_sentiment(raw_df)
+            live_data.extend(local_df.to_dict('records'))
     except Exception:
         pass
-    
-    # Safe Fallback Data
-    sample = pd.DataFrame({
-        'question': [
-            'Donald Trump to win 2028 Presidential Election?',
-            'Bitcoin to reach $100,000 by end of 2024?',
-            'Federal Reserve to cut rates in September?',
-            'EU to approve new migration pact this year?',
-            'SpaceX to complete Starship orbital test?',
-            'Taylor Swift to endorse Biden in 2024?'
-        ],
-        'category': ['Politics', 'Crypto', 'Macro', 'Geopolitics', 'Technology', 'Culture'],
-        'yes_price': [0.61, 0.72, 0.45, 0.83, 0.34, 0.67],
-        'volume': [2400000, 1800000, 3200000, 950000, 1500000, 2100000],
-        'source': ['Polymarket', 'Polymarket', 'Kalshi', 'Polymarket', 'Kalshi', 'Polymarket'],
-        'sentiment': [0.72, 0.85, 0.40, 0.65, 0.80, 0.55] 
-    })
-    return sample
+        
+    # 3. Return Combined DataFrame or Fallback
+    if live_data:
+        df = pd.DataFrame(live_data)
+        # Drop markets with 0 volume to keep UI clean and sort highest first
+        df = df[df['volume'] > 0].sort_values(by='volume', ascending=False)
+        return df
+    else:
+        # Safe Fallback Demo Data
+        return pd.DataFrame({
+            'question': [
+                'Donald Trump to win 2028 Presidential Election?',
+                'Bitcoin to reach $100,000 by end of 2024?',
+                'Federal Reserve to cut rates in September?'
+            ],
+            'category': ['Politics', 'Crypto', 'Macro'],
+            'yes_price': [0.61, 0.72, 0.45],
+            'volume': [2400000, 1800000, 3200000],
+            'source': ['Polymarket', 'Polymarket', 'Kalshi'],
+            'sentiment': [0.72, 0.85, 0.40] 
+        })
 
 if 'df' not in st.session_state:
     st.session_state.df = load_markets()
@@ -385,7 +418,8 @@ df = st.session_state.df
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    politics_sentiment = df[df['category'] == 'Politics']['sentiment'].mean() if not df[df['category'] == 'Politics'].empty else 0.5
+    politics_sentiment = df[df['category'].str.contains('Politic', na=False, case=False)]['sentiment'].mean()
+    politics_sentiment = politics_sentiment if pd.notna(politics_sentiment) else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">🏛️</div>
@@ -395,7 +429,8 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    crypto_sentiment = df[df['category'] == 'Crypto']['sentiment'].mean() if not df[df['category'] == 'Crypto'].empty else 0.5
+    crypto_sentiment = df[df['category'].str.contains('Crypto', na=False, case=False)]['sentiment'].mean()
+    crypto_sentiment = crypto_sentiment if pd.notna(crypto_sentiment) else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">₿</div>
@@ -435,9 +470,12 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        category_filter = st.selectbox("Category", ["All", "Politics", "Crypto", "Macro", "Geopolitics", "Culture", "Technology"])
+        # Dynamic categories based on data payload
+        cats = ["All"] + sorted(list(df['category'].unique()))
+        category_filter = st.selectbox("Category", cats)
     with col2:
-        platform_filter = st.selectbox("Platform", ["All", "Polymarket", "Kalshi"])
+        platforms = ["All"] + sorted(list(df['source'].unique()))
+        platform_filter = st.selectbox("Platform", platforms)
     with col3:
         sort_by = st.selectbox("Sort by", ["Volume", "Sentiment", "Probability"])
     
@@ -450,7 +488,7 @@ with tab1:
     else: filtered_df = filtered_df.sort_values('yes_price', ascending=False)
     
     st.markdown("<br>", unsafe_allow_html=True)
-    for _, market in filtered_df.head(10).iterrows():
+    for _, market in filtered_df.head(15).iterrows():
         prob_class = "prob-high" if market['yes_price'] > 0.66 else "prob-low" if market['yes_price'] < 0.33 else "prob-mid"
         st.markdown(f"""
         <div class="market-card">
@@ -469,11 +507,9 @@ with tab1:
 with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Safe fallback for category sentiment dataframe
     try:
         sentiment_df = get_category_sentiment(df)
     except Exception:
-        # Fallback if the function is missing
         mock_data = []
         for cat in df['category'].unique():
             mock_data.append({'Category': cat, 'Sentiment': df[df['category'] == cat]['sentiment'].mean(), 'Markets': 10, 'Volume': '$1,000,000'})
@@ -486,7 +522,6 @@ with tab2:
         with col1:
             overall = sentiment_df[sentiment_df['Category'] == 'OVERALL'].iloc[0]
             
-            # Gauge Chart Using Pure go.Indicator (Error Free)
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=overall['Sentiment'],
@@ -494,7 +529,7 @@ with tab2:
                 title={'text': "Global Pulse Index", 'font': {'color': 'white', 'size': 16}},
                 gauge={
                     'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "rgba(255,255,255,0.2)"},
-                    'bar': {'color': "#34d399"}, # emerald-400 
+                    'bar': {'color': "#34d399"}, 
                     'bgcolor': 'rgba(255,255,255,0.05)',
                     'borderwidth': 0,
                     'steps': [
@@ -509,14 +544,13 @@ with tab2:
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            # Bar Chart Using Pure go.Bar
             cat_df = sentiment_df[sentiment_df['Category'] != 'OVERALL'].copy()
             
             fig2 = go.Figure(data=[
                 go.Bar(
                     x=cat_df['Category'],
                     y=cat_df['Sentiment'],
-                    marker_color='#34d399', # emerald-400 
+                    marker_color='#34d399', 
                     text=cat_df['Sentiment'].apply(lambda x: f'{x:.2%}'),
                     textposition='outside',
                     textfont=dict(color='white')
