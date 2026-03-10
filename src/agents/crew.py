@@ -2,17 +2,15 @@ from crewai import Agent, Task, Crew
 from langchain_openai import ChatOpenAI
 import os
 
-# Absolute imports (no relative .tools)
+# No relative import – use absolute from same folder
 from tools import get_top_movers, scan_external_signals, predict_market_reaction, analyze_specific_market
 
-# LLM configuration (uses keys from .env or secrets)
 llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.3,
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-# Main predictive agent
 oracle = Agent(
     role="PulseRadar Predictive Oracle",
     goal="Combine live real-money data from Polymarket and Kalshi with real-time social/news signals to forecast how prediction markets will move",
@@ -29,10 +27,6 @@ oracle = Agent(
 )
 
 def run_pulse_crew(user_query: str) -> str:
-    """
-    Run the predictive analysis crew for a user question.
-    Returns a markdown-formatted report.
-    """
     task = Task(
         description=(
             f"Analyze and PREDICT market reaction for: '{user_query}'. "
@@ -54,7 +48,7 @@ def run_pulse_crew(user_query: str) -> str:
     crew = Crew(
         agents=[oracle],
         tasks=[task],
-        verbose=2
+        verbose=1
     )
 
     result = crew.kickoff()
