@@ -1,3 +1,14 @@
+import sys
+import os
+
+# Add the project root to sys.path so src/ is found
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Now your imports will work
+from src.fetcher import get_active_markets
+from src.sentiment import calculate_sentiment_score, get_category_indices
+from src.agents.crew import run_pulse_crew
+
 import streamlit as st
 import plotly.express as px
 import os
