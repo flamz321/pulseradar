@@ -536,8 +536,9 @@ with tab3:
     else:
         st.success("Oracle is ready! Ask me anything about the markets.")
         
-        # Example queries
+        # Example queries as clickable buttons
         st.markdown("**Try asking:**")
+        example_cols = st.columns(2)
         examples = [
             "Will Trump's probability increase after the debate?",
             "What's the sentiment on Bitcoin right now?",
@@ -545,15 +546,17 @@ with tab3:
             "Any markets showing unusual activity?"
         ]
         
-        for ex in examples:
-            if st.button(f"💬 {ex}", key=ex):
-                st.session_state['query'] = ex
+        for i, ex in enumerate(examples):
+            with example_cols[i % 2]:
+                if st.button(f"💬 {ex}", key=f"example_{i}", use_container_width=True):
+                    st.session_state['query'] = ex
         
-        # Chat input
-        if prompt := st.chat_input("Ask the Oracle..."):
+        # Show the current query if any
+        if 'query' in st.session_state:
+            st.info(f"**Query:** {st.session_state['query']}")
+            
+            # Mock response (replace with actual AI call)
             with st.spinner("Analyzing markets and scanning signals..."):
-                # This is where you'd call your AI function
-                # For now, return a placeholder
                 st.markdown("""
                 **Oracle Response:**
                 
@@ -570,6 +573,20 @@ with tab3:
                 
                 Confidence: High (78%)
                 """)
+                
+                # Clear button
+                if st.button("Clear query", key="clear_query"):
+                    del st.session_state['query']
+                    st.rerun()
+        
+        # Add a text input at the bottom of the tab (not using chat_input)
+        with st.form(key="oracle_form"):
+            user_query = st.text_input("Ask the Oracle:", placeholder="e.g., What's the outlook for crypto markets?")
+            submit_button = st.form_submit_button("Ask Oracle", use_container_width=True)
+            
+            if submit_button and user_query:
+                st.session_state['query'] = user_query
+                st.rerun()
 
 # Footer
 st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
