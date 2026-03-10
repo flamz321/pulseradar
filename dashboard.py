@@ -1,14 +1,9 @@
 import sys
 import os
 
-# ────────────────────────────────────────────────
-# Explicit path fixes for Streamlit Cloud root execution
-# ────────────────────────────────────────────────
-
-# Get dashboard.py directory (root)
+# Force-add src/ and src/agents/ to sys.path
+# This is required because Streamlit runs from root, not src/
 root_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Add root/src/ and root/src/agents/ to sys.path
 src_dir = os.path.join(root_dir, 'src')
 agents_dir = os.path.join(src_dir, 'agents')
 
@@ -17,20 +12,14 @@ for path in [src_dir, agents_dir]:
     if abs_path not in sys.path:
         sys.path.insert(0, abs_path)
 
-# Debug prints (comment out later if desired)
-print("Added paths to sys.path:")
-print(f"  - {src_dir}")
-print(f"  - {agents_dir}")
-print("Current sys.path:", sys.path)
-print("Current working dir:", os.getcwd())
+# Debug (visible in logs – remove/comment later if you want clean output)
+print("sys.path updated with src/ and agents/")
+print("cwd:", os.getcwd())
 
-# ────────────────────────────────────────────────
-# Safe absolute imports (no dotted relative syntax)
-# ────────────────────────────────────────────────
-
+# Imports from src/ (absolute, no dots or src. prefix needed after path fix)
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
-from crew import run_pulse_crew  # ← direct from agents/crew.py (no agents.)
+from crew import run_pulse_crew  # from src/agents/crew.py
 
 import streamlit as st
 import plotly.express as px
@@ -113,7 +102,7 @@ with tab2:
 
 with tab3:
     st.subheader("🤖 Predictive Oracle Chat")
-    if not os.getenv("OPENAI_API_KEY") and not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("GROQ_API_KEY"):
+    if not any(os.getenv(k) for k in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GROQ_API_KEY"]):
         st.warning(
             "Add at least one LLM API key (OpenAI, Claude, Groq, etc.) "
             "to Streamlit Secrets to unlock the Predictive Oracle agents."
