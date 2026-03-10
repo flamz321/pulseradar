@@ -1,3 +1,4 @@
+# Existing lines...
 streamlit
 pandas
 plotly
@@ -6,3 +7,9 @@ py-clob-client
 crewai
 langchain-openai
 python-dotenv
+langchain-community
+duckduckgo-search
+
+# ADD THESE (critical for langchain.tools and full langchain)
+langchain
+langchain-core
