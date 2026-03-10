@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+import os
+
+# Import our modules
 from fetcher import get_all_markets
 from sentiment import calculate_sentiment, get_category_sentiment
 
@@ -14,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for the look
+# Custom CSS for the exact PulseRadar.xyz look
 st.markdown("""
 <style>
     /* Main background and text */
@@ -23,13 +26,54 @@ st.markdown("""
         color: #FFFFFF;
     }
     
-    /* Metrics styling */
+    /* Hide default Streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display:none;}
+    
+    /* Custom typography */
+    h1, h2, h3 {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    
+    h1 {
+        font-size: 64px;
+        background: linear-gradient(135deg, #FFFFFF 0%, #A0A0C0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0px;
+    }
+    
+    .subtitle {
+        color: #A0A0C0;
+        font-size: 18px;
+        line-height: 1.6;
+        text-align: center;
+        max-width: 800px;
+        margin: 20px auto;
+    }
+    
+    /* Metric cards */
     .metric-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
         padding: 24px;
         backdrop-filter: blur(10px);
+        transition: transform 0.2s;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .metric-icon {
+        font-size: 32px;
+        margin-bottom: 16px;
+        opacity: 0.9;
     }
     
     .metric-value {
@@ -38,23 +82,121 @@ st.markdown("""
         background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        line-height: 1.2;
     }
     
-    /* Headers */
-    h1, h2, h3 {
-        background: linear-gradient(135deg, #FFFFFF 0%, #A0A0C0 100%);
+    .metric-label {
+        color: #A0A0C0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 8px;
+    }
+    
+    /* Stat cards for categories */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 20px;
+        transition: all 0.2s;
+    }
+    
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .stat-category {
+        font-size: 18px;
+        font-weight: 600;
+        color: #FFFFFF;
+        margin-bottom: 12px;
+    }
+    
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #FFFFFF 0%, #C0C0E0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-change {
+        font-size: 14px;
+        margin-top: 8px;
+    }
+    
+    .positive {
+        color: #10B981;
+    }
+    
+    .negative {
+        color: #EF4444;
+    }
+    
+    .neutral {
+        color: #F59E0B;
+    }
+    
+    /* Market cards */
+    .market-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s;
+    }
+    
+    .market-card:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(102, 126, 234, 0.4);
+    }
+    
+    .market-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    
+    .market-source {
+        color: #667EEA;
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .market-probability {
+        font-size: 20px;
         font-weight: 700;
     }
     
-    /* Stats cards */
-    .stat-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 20px;
-        margin: 10px 0;
+    .prob-high {
+        color: #10B981;
+    }
+    
+    .prob-low {
+        color: #EF4444;
+    }
+    
+    .prob-mid {
+        color: #F59E0B;
+    }
+    
+    .market-question {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 12px;
+        color: #FFFFFF;
+    }
+    
+    .market-footer {
+        display: flex;
+        justify-content: space-between;
+        color: #A0A0C0;
+        font-size: 14px;
     }
     
     /* Radar pulse animation */
@@ -66,159 +208,320 @@ st.markdown("""
     
     .radar-pulse {
         animation: pulse 2s infinite;
-        color: #667EEA;
+        display: inline-block;
+    }
+    
+    /* Tabs styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 12px;
+        padding: 8px 16px;
+        color: #A0A0C0;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: rgba(102, 126, 234, 0.2) !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Divider */
+    .custom-divider {
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+        height: 1px;
+        margin: 40px 0;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Header with radar animation
+# Header section with radar animation
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.markdown("<h1 style='text-align: center; font-size: 64px;'>📡</h1>", unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center;'>The radar<br>of the world</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #A0A0C0;'>AI agents scour X, Facebook, TikTok, Instagram, global news headlines, blogs, forums & public web sources in real time —<br>then predict how Polymarket & Kalshi markets will move based on real-world reaction patterns.</p>", unsafe_allow_html=True)
-
-# Top stats row
-col1, col2, col3, col4 = st.columns(4)
+    st.markdown("<h1 style='text-align: center;'>📡</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>the radar<br>of the world</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="subtitle">
+        AI agents scour X, Facebook, TikTok, Instagram, global news headlines, blogs, 
+        forums & public web sources in real time — then predict how Polymarket & Kalshi 
+        markets will move based on real-world reaction patterns.
+    </div>
+    """, unsafe_allow_html=True)
 
 # Load data
-if 'df' not in st.session_state:
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def load_markets():
     with st.spinner("Scanning global markets..."):
         raw_df = get_all_markets(100)
         if not raw_df.empty:
-            st.session_state.df = calculate_sentiment(raw_df)
+            df = calculate_sentiment(raw_df)
+            return df
         else:
-            # Sample data for demo
+            # Enhanced sample data for demo
             sample = pd.DataFrame({
-                'question': ['Trump 2028?', 'Bitcoin $100K?', 'Fed Rate Cut', 'EU Election', 'SpaceX IPO'],
-                'category': ['Politics', 'Crypto', 'Macro', 'Geopolitics', 'Culture'],
-                'yes_price': [0.61, 0.72, 0.45, 0.83, 0.34],
-                'volume': [2400000, 1800000, 3200000, 950000, 1500000],
-                'source': ['Polymarket', 'Polymarket', 'Kalshi', 'Polymarket', 'Kalshi']
+                'question': [
+                    'Donald Trump to win 2028 Presidential Election?',
+                    'Bitcoin to reach $100,000 by end of 2024?',
+                    'Federal Reserve to cut rates in September?',
+                    'EU to approve new migration pact this year?',
+                    'SpaceX to complete Starship orbital test?',
+                    'Taylor Swift to endorse Biden in 2024?'
+                ],
+                'category': ['Politics', 'Crypto', 'Macro', 'Geopolitics', 'Technology', 'Culture'],
+                'yes_price': [0.61, 0.72, 0.45, 0.83, 0.34, 0.67],
+                'volume': [2400000, 1800000, 3200000, 950000, 1500000, 2100000],
+                'source': ['Polymarket', 'Polymarket', 'Kalshi', 'Polymarket', 'Kalshi', 'Polymarket']
             })
-            st.session_state.df = calculate_sentiment(sample)
+            return calculate_sentiment(sample)
+
+# Initialize session state
+if 'df' not in st.session_state:
+    st.session_state.df = load_markets()
 
 df = st.session_state.df
 
-with col1:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="color: #A0A0C0;">🇺🇸</div>
-        <div class="metric-value">{}</div>
-        <div style="color: #A0A0C0;">Politics</div>
-    </div>
-    """.format(f"{df[df['category']=='Politics']['yes_price'].mean():.0%}" if not df[df['category']=='Politics'].empty else "N/A"), unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="color: #A0A0C0;">₿</div>
-        <div class="metric-value">{}</div>
-        <div style="color: #A0A0C0;">Crypto</div>
-    </div>
-    """.format(f"{df[df['category']=='Crypto']['yes_price'].mean():.0%}" if not df[df['category']=='Crypto'].empty else "N/A"), unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-    <div class="metric-card">
-        <div style="color: #A0A0C0;">🌍</div>
-        <div class="metric-value">{}</div>
-        <div style="color: #A0A0C0;">Global</div>
-    </div>
-    """.format(f"{len(df)}", unsafe_allow_html=True))
-
-with col4:
-    sentiment_trend = "+14.8%"  # You'd calculate this from historical data
-    st.markdown("""
-    <div class="metric-card">
-        <div style="color: #A0A0C0;">📊</div>
-        <div class="metric-value radar-pulse">{}</div>
-        <div style="color: #A0A0C0;">↑ {} this week</div>
-    </div>
-    """.format(f"{df['sentiment'].mean():.3f}" if not df.empty else "0.5", sentiment_trend), unsafe_allow_html=True)
-
-# Category sentiment row
-st.markdown("---")
+# Top metrics row
 col1, col2, col3, col4 = st.columns(4)
 
+with col1:
+    politics_sentiment = df[df['category'] == 'Politics']['sentiment'].mean() if not df[df['category'] == 'Politics'].empty else 0.5
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-icon">🇺🇸</div>
+        <div class="metric-value">{politics_sentiment:.0%}</div>
+        <div class="metric-label">Politics</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    crypto_sentiment = df[df['category'] == 'Crypto']['sentiment'].mean() if not df[df['category'] == 'Crypto'].empty else 0.5
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-icon">₿</div>
+        <div class="metric-value">{crypto_sentiment:.0%}</div>
+        <div class="metric-label">Crypto</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-icon">🌍</div>
+        <div class="metric-value">{len(df)}</div>
+        <div class="metric-label">markets tracked</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    global_sentiment = df['sentiment'].mean()
+    # Calculate mock trend (in real app, compare with historical data)
+    trend = "+14.8%" if global_sentiment > 0.6 else "-3.2%" if global_sentiment < 0.4 else "+5.1%"
+    trend_class = "positive" if "+" in trend else "negative"
+    
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-icon">📊</div>
+        <div class="metric-value radar-pulse">{global_sentiment:.3f}</div>
+        <div class="metric-label">Global Sentiment <span class="{trend_class}">↑ {trend}</span></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Category stats row
+st.markdown('<div style="margin: 40px 0;"></div>', unsafe_allow_html=True)
+
+col1, col2, col3, col4 = st.columns(4)
 categories = ['Politics', 'Crypto', 'Macro', 'Geopolitics']
-for col, cat in zip([col1, col2, col3, col4], categories):
+changes = ['+14.8%', '+9.2%', '-3.1%', '+27%']  # Mock changes
+
+for col, cat, change in zip([col1, col2, col3, col4], categories, changes):
     cat_df = df[df['category'] == cat]
     if not cat_df.empty:
         sentiment = cat_df['sentiment'].mean()
-        change = "+9.2%" if sentiment > 0.6 else "-3.1%" if sentiment < 0.4 else "+2.1%"
+        change_class = "positive" if "+" in change else "negative" if "-" in change else "neutral"
+        
         col.markdown(f"""
         <div class="stat-card">
-            <h3>{cat}</h3>
-            <div style="font-size: 32px; font-weight: 700;">{sentiment:.1%}</div>
-            <div style="color: {'#10B981' if '+' in change else '#EF4444'};">{change}</div>
+            <div class="stat-category">{cat}</div>
+            <div class="stat-value">{sentiment:.0%}</div>
+            <div class="stat-change {change_class}">{change}</div>
         </div>
         """, unsafe_allow_html=True)
 
-# Main content
+# Custom divider
+st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
+
+# Tabs
 tab1, tab2, tab3 = st.tabs(["📊 Live Markets", "📈 Global Indices", "🤖 Oracle Chat"])
 
 with tab1:
-    st.subheader("Live Markets • Polymarket + Kalshi")
+    st.markdown("### Live Markets • Polymarket + Kalshi")
     
-    # Market cards grid
-    for i in range(0, min(6, len(df)), 2):
-        cols = st.columns(2)
-        for j, col in enumerate(cols):
-            if i + j < len(df):
-                market = df.iloc[i + j]
-                col.markdown(f"""
-                <div class="stat-card">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #A0A0C0;">{market['source']}</span>
-                        <span style="color: {'#10B981' if market['sentiment'] > 0.5 else '#EF4444'};">
-                            {market['yes_price']:.1%}
-                        </span>
-                    </div>
-                    <div style="font-size: 18px; margin: 10px 0;">{market['question'][:60]}...</div>
-                    <div style="display: flex; justify-content: space-between; color: #A0A0C0;">
-                        <span>💰 ${market['volume']:,.0f}</span>
-                        <span>📈 {market['sentiment']:.2f} sentiment</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+    # Filter options
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        category_filter = st.selectbox("Category", ["All", "Politics", "Crypto", "Macro", "Geopolitics", "Culture", "Technology"])
+    with col2:
+        platform_filter = st.selectbox("Platform", ["All", "Polymarket", "Kalshi"])
+    with col3:
+        sort_by = st.selectbox("Sort by", ["Volume", "Sentiment", "Probability"])
+    
+    # Apply filters
+    filtered_df = df.copy()
+    if category_filter != "All":
+        filtered_df = filtered_df[filtered_df['category'] == category_filter]
+    if platform_filter != "All":
+        filtered_df = filtered_df[filtered_df['source'] == platform_filter]
+    
+    # Sort
+    if sort_by == "Volume":
+        filtered_df = filtered_df.sort_values('volume', ascending=False)
+    elif sort_by == "Sentiment":
+        filtered_df = filtered_df.sort_values('sentiment', ascending=False)
+    else:
+        filtered_df = filtered_df.sort_values('yes_price', ascending=False)
+    
+    # Display markets as cards
+    for _, market in filtered_df.head(10).iterrows():
+        prob_class = "prob-high" if market['yes_price'] > 0.66 else "prob-low" if market['yes_price'] < 0.33 else "prob-mid"
+        
+        st.markdown(f"""
+        <div class="market-card">
+            <div class="market-header">
+                <span class="market-source">{market['source']} • {market['category']}</span>
+                <span class="market-probability {prob_class}">{market['yes_price']:.1%}</span>
+            </div>
+            <div class="market-question">{market['question']}</div>
+            <div class="market-footer">
+                <span>💰 Volume: ${market['volume']:,.0f}</span>
+                <span>📊 Sentiment: {market['sentiment']:.3f}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 with tab2:
-    st.subheader("Global Sentiment Indices")
+    st.markdown("### Global Sentiment Indices")
     
     sentiment_df = get_category_sentiment(df)
+    
     if not sentiment_df.empty:
-        # Create a gauge chart for overall sentiment
-        overall = sentiment_df[sentiment_df['Category'] == 'OVERALL'].iloc[0]
+        col1, col2 = st.columns([1, 1])
         
-        fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = overall['Sentiment'],
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Global Pulse"},
-            gauge = {
-                'axis': {'range': [0, 1], 'tickwidth': 1},
-                'bar': {'color': "#667EEA"},
-                'steps': [
-                    {'range': [0, 0.33], 'color': "#EF4444"},
-                    {'range': [0.33, 0.66], 'color': "#F59E0B"},
-                    {'range': [0.66, 1], 'color': "#10B981"}
-                ],
-                'threshold': {
-                    'line': {'color': "white", 'width': 4},
-                    'thickness': 0.75,
-                    'value': overall['Sentiment']
+        with col1:
+            # Gauge chart for overall sentiment
+            overall = sentiment_df[sentiment_df['Category'] == 'OVERALL'].iloc[0]
+            
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number+delta",
+                value=overall['Sentiment'],
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Global Pulse Index", 'font': {'color': 'white', 'size': 20}},
+                delta={'reference': 0.5, 'increasing': {'color': "#10B981"}, 'decreasing': {'color': "#EF4444"}},
+                gauge={
+                    'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "white"},
+                    'bar': {'color': "#667EEA"},
+                    'bgcolor': 'rgba(0,0,0,0)',
+                    'borderwidth': 0,
+                    'steps': [
+                        {'range': [0, 0.33], 'color': 'rgba(239, 68, 68, 0.2)'},
+                        {'range': [0.33, 0.66], 'color': 'rgba(245, 158, 11, 0.2)'},
+                        {'range': [0.66, 1], 'color': 'rgba(16, 185, 129, 0.2)'}
+                    ],
+                    'threshold': {
+                        'line': {'color': "white", 'width': 4},
+                        'thickness': 0.75,
+                        'value': overall['Sentiment']
+                    }
                 }
-            }
-        ))
-        fig.update_layout(height=300)
-        st.plotly_chart(fig, use_container_width=True)
+            ))
+            
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font={'color': 'white', 'size': 12},
+                height=350,
+                margin=dict(l=20, r=20, t=50, b=20)
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            # Bar chart of category sentiments
+            cat_df = sentiment_df[sentiment_df['Category'] != 'OVERALL'].copy()
+            
+            fig2 = go.Figure(data=[
+                go.Bar(
+                    x=cat_df['Category'],
+                    y=cat_df['Sentiment'],
+                    marker_color=['#667EEA' for _ in range(len(cat_df))],
+                    text=cat_df['Sentiment'].apply(lambda x: f'{x:.2%}'),
+                    textposition='outside',
+                    textfont={'color': 'white'}
+                )
+            ])
+            
+            fig2.update_layout(
+                title={'text': "Sentiment by Category", 'font': {'color': 'white'}},
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                xaxis={'tickcolor': 'white', 'gridcolor': 'rgba(255,255,255,0.1)'},
+                yaxis={'tickcolor': 'white', 'gridcolor': 'rgba(255,255,255,0.1)', 'range': [0, 1]},
+                font={'color': 'white'},
+                height=350,
+                showlegend=False
+            )
+            
+            fig2.add_hline(y=0.5, line_dash="dash", line_color="rgba(255,255,255,0.3)")
+            
+            st.plotly_chart(fig2, use_container_width=True)
+        
+        # Market stats
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric(
+                "Total Markets",
+                overall['Markets'],
+                delta=None
+            )
+        
+        with col2:
+            st.metric(
+                "Total Volume",
+                overall['Volume'].replace('$', ''),
+                delta=None
+            )
+        
+        with col3:
+            bullish_count = len(df[df['sentiment'] > 0.6])
+            st.metric(
+                "Bullish Markets",
+                bullish_count,
+                delta=f"{(bullish_count/len(df)*100):.0f}% of total"
+            )
+        
+        with col4:
+            bearish_count = len(df[df['sentiment'] < 0.4])
+            st.metric(
+                "Bearish Markets",
+                bearish_count,
+                delta=f"{(bearish_count/len(df)*100):.0f}% of total"
+            )
 
 with tab3:
-    st.subheader("🤖 Predictive Oracle")
-    st.info("Ask the oracle about any market (requires OpenAI API key)")
-    # We'll add the AI functionality in Phase 3
-
-# Footer
-st.markdown("---")
-st.markdown(f"<p style='text-align: center; color: #A0A0C0;'>Last updated: {datetime.now().strftime('%I:%M %p')} UTC • Data from Polymarket + Kalshi</p>", unsafe_allow_html=True)
+    st.markdown("### 🤖 Predictive Oracle")
+    
+    # Check for API keys
+    has_openai = os.getenv("OPENAI_API_KEY") is not None
+    
+    if not has_openai:
+        st.info("""
+        👋 **Ask the Oracle about any market**
+        
+        To enable AI predictions, add your OpenAI API key to secrets:
+        ```toml
+        OPENAI_API_KEY = "sk-..."
