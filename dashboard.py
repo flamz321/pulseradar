@@ -1,38 +1,15 @@
-import sys
+import streamlit as st
+import plotly.express as px
 import os
 
 # ────────────────────────────────────────────────
-# Fix for ModuleNotFoundError: No module named 'src'
-# on Streamlit Cloud (runs from repo root)
+# Root-level imports (no src. prefix since dashboard.py is now in root)
 # ────────────────────────────────────────────────
+from fetcher import get_active_markets
+from sentiment import calculate_sentiment_score, get_category_indices
+from agents.crew import run_pulse_crew
 
-# Get absolute path to this script (src/dashboard.py)
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Get absolute path to repo root (parent of src/)
-repo_root = os.path.abspath(os.path.join(script_dir, '..'))
-
-# Insert repo root at the very beginning of sys.path
-if repo_root not in sys.path:
-    sys.path.insert(0, repo_root)
-
-# Optional debug prints (visible in Streamlit Cloud logs)
-print("Repo root added to sys.path:", repo_root)
-print("Current sys.path:", sys.path)
-print("Current working directory:", os.getcwd())
-
-# ────────────────────────────────────────────────
-# Now safe to import from src/
-# ────────────────────────────────────────────────
-
-from src.fetcher import get_active_markets
-from src.sentiment import calculate_sentiment_score, get_category_indices
-from src.agents.crew import run_pulse_crew
-
-import streamlit as st
-import plotly.express as px
-
-# Page config (only once)
+# Page config
 st.set_page_config(
     page_title="PulseRadar",
     page_icon="📡",
@@ -110,10 +87,10 @@ with tab2:
 
 with tab3:
     st.subheader("🤖 Predictive Oracle Chat")
-    if not os.getenv("OPENAI_API_KEY"):
+    if not os.getenv("OPENAI_API_KEY") and not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("GROQ_API_KEY"):
         st.warning(
-            "Add your OpenAI API key to `.env` or Streamlit Secrets "
-            "to unlock the Predictive Oracle agents."
+            "Add at least one LLM API key (OpenAI, Claude, Groq, etc.) "
+            "to Streamlit Secrets or `.env` to unlock the Predictive Oracle agents."
         )
     else:
         st.info(
