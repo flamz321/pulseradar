@@ -494,7 +494,7 @@ with tab2:
                 title={'text': "Global Pulse Index", 'font': {'color': 'white', 'size': 16}},
                 gauge={
                     'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "rgba(255,255,255,0.2)"},
-                    'bar': {'color': "#34d399"}, /* emerald-400 */
+                    'bar': {'color': "#34d399"}, # emerald-400 
                     'bgcolor': 'rgba(255,255,255,0.05)',
                     'borderwidth': 0,
                     'steps': [
@@ -516,7 +516,7 @@ with tab2:
                 go.Bar(
                     x=cat_df['Category'],
                     y=cat_df['Sentiment'],
-                    marker_color='#34d399', /* emerald-400 */
+                    marker_color='#34d399', # emerald-400 
                     text=cat_df['Sentiment'].apply(lambda x: f'{x:.2%}'),
                     textposition='outside',
                     textfont=dict(color='white')
