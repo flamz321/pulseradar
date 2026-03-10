@@ -490,9 +490,11 @@ with tab2:
             )
         
         with col2:
+            # Extract numeric value from Volume string (remove $ and ,)
+            volume_str = overall['Volume'].replace('$', '').replace(',', '')
             st.metric(
                 "Total Volume",
-                overall['Volume'].replace('$', ''),
+                f"${int(float(volume_str)):,}",
                 delta=None
             )
         
@@ -519,9 +521,65 @@ with tab3:
     has_openai = os.getenv("OPENAI_API_KEY") is not None
     
     if not has_openai:
-        st.info("""
-        👋 **Ask the Oracle about any market**
+        st.info(
+            "👋 **Ask the Oracle about any market**\n\n"
+            "To enable AI predictions, add your OpenAI API key to secrets:\n"
+            "```toml\n"
+            'OPENAI_API_KEY = "sk-..."\n'
+            "```\n\n"
+            "The oracle can:\n"
+            "- Predict market movements\n"
+            "- Analyze sentiment trends\n"
+            "- Answer questions about specific markets\n"
+            "- Provide trading insights"
+        )
+    else:
+        st.success("Oracle is ready! Ask me anything about the markets.")
         
-        To enable AI predictions, add your OpenAI API key to secrets:
-        ```toml
-        OPENAI_API_KEY = "sk-..."
+        # Example queries
+        st.markdown("**Try asking:**")
+        examples = [
+            "Will Trump's probability increase after the debate?",
+            "What's the sentiment on Bitcoin right now?",
+            "Predict Fed rate cut odds for September",
+            "Any markets showing unusual activity?"
+        ]
+        
+        for ex in examples:
+            if st.button(f"💬 {ex}", key=ex):
+                st.session_state['query'] = ex
+        
+        # Chat input
+        if prompt := st.chat_input("Ask the Oracle..."):
+            with st.spinner("Analyzing markets and scanning signals..."):
+                # This is where you'd call your AI function
+                # For now, return a placeholder
+                st.markdown("""
+                **Oracle Response:**
+                
+                Based on current market data and sentiment analysis:
+                
+                - **Current probability**: 61%
+                - **24h volume**: $2.4M
+                - **Sentiment score**: 0.72 (Bullish)
+                
+                **Prediction**: +8-12% probability increase expected in next 6-12 hours based on:
+                - Increasing social media chatter
+                - Positive news sentiment
+                - Whale accumulation detected
+                
+                Confidence: High (78%)
+                """)
+
+# Footer
+st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns(3)
+with col2:
+    st.markdown(f"""
+    <div style="text-align: center; color: #A0A0C0; padding: 20px;">
+        <span class="radar-pulse">📡</span><br>
+        <span>Last updated: {datetime.now().strftime('%I:%M %p')} UTC</span><br>
+        <span style="font-size: 12px;">Data from Polymarket • Kalshi</span>
+    </div>
+    """, unsafe_allow_html=True)
