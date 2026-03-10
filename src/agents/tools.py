@@ -1,7 +1,7 @@
 from langchain.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
 
-# Root-level imports (fetcher & sentiment moved to root)
+# Root-level imports (fetcher & sentiment now in root)
 from fetcher import get_active_markets, get_trades
 from sentiment import calculate_sentiment_score
 
