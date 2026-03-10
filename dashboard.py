@@ -1,13 +1,36 @@
-import streamlit as st
-import plotly.express as px
+import sys
 import os
 
 # ────────────────────────────────────────────────
-# Root-level imports (no src. prefix since dashboard.py is now in root)
+# Fix for ModuleNotFoundError when dashboard.py is in root
+# but other modules are in src/
 # ────────────────────────────────────────────────
+
+# Get absolute path to this file (dashboard.py in root)
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Get absolute path to src/ folder (sibling to dashboard.py)
+src_dir = os.path.abspath(os.path.join(current_file_dir, 'src'))
+
+# Add src/ to sys.path if not already present
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+
+# Optional debug prints (visible in logs — comment out later if desired)
+print("Added src/ to sys.path:", src_dir)
+print("Current sys.path:", sys.path)
+print("Current working directory:", os.getcwd())
+
+# ────────────────────────────────────────────────
+# Now import modules from src/
+# ────────────────────────────────────────────────
+
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
 from agents.crew import run_pulse_crew
+
+import streamlit as st
+import plotly.express as px
 
 # Page config
 st.set_page_config(
@@ -90,7 +113,7 @@ with tab3:
     if not os.getenv("OPENAI_API_KEY") and not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("GROQ_API_KEY"):
         st.warning(
             "Add at least one LLM API key (OpenAI, Claude, Groq, etc.) "
-            "to Streamlit Secrets or `.env` to unlock the Predictive Oracle agents."
+            "to Streamlit Secrets to unlock the Predictive Oracle agents."
         )
     else:
         st.info(
