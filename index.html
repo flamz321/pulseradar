@@ -7,16 +7,17 @@
   <meta name="description" content="PulseRadar: Open-source AI radar predicting Polymarket & Kalshi probability shifts by analyzing real-time X, TikTok, Instagram, news & worldwide sentiment.">
 
   <meta property="og:url" content="https://pulseradar.xyz/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="PulseRadar • AI Predictive Sentiment Radar">
-    <meta property="og:description" content="PulseRadar: Open-source AI radar predicting Polymarket & Kalshi probability shifts by analyzing real-time X, TikTok, Instagram, news & worldwide sentiment.">
-    <meta property="og:image" content="https://i.imgur.com/X1dJSBk.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="pulseradar.xyz">
-    <meta property="twitter:url" content="https://pulseradar.xyz/">
-    <meta name="twitter:title" content="PulseRadar • AI Predictive Sentiment Radar">
-    <meta name="twitter:description" content="PulseRadar: Open-source AI radar predicting Polymarket & Kalshi probability shifts by analyzing real-time X, TikTok, Instagram, news & worldwide sentiment.">
-    <meta name="twitter:image" content="https://i.imgur.com/X1dJSBk.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PulseRadar • AI Predictive Sentiment Radar">
+  <meta property="og:description" content="PulseRadar: Open-source AI radar predicting Polymarket & Kalshi probability shifts by analyzing real-time X, TikTok, Instagram, news & worldwide sentiment.">
+  <meta property="og:image" content="https://i.imgur.com/X1dJSBk.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="pulseradar.xyz">
+  <meta property="twitter:url" content="https://pulseradar.xyz/">
+  <meta name="twitter:title" content="PulseRadar • AI Predictive Sentiment Radar">
+  <meta name="twitter:description" content="PulseRadar: Open-source AI radar predicting Polymarket & Kalshi probability shifts by analyzing real-time X, TikTok, Instagram, news & worldwide sentiment.">
+  <meta name="twitter:image" content="https://i.imgur.com/X1dJSBk.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
@@ -28,6 +29,7 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden; /* Prevent any horizontal cutoff on mobile */
     }
 
     h1, h2, h3 {
@@ -78,79 +80,103 @@
       border-radius: 9999px;
     }
 
+    /* Mobile-specific fixes */
     @media (max-width: 768px) {
-      h1 { font-size: 3.5rem; line-height: 1.05; }
-      h2 { font-size: 2.75rem; }
+      body { padding-top: 4rem; } /* Space for fixed navbar */
+      nav .py-5 { padding-top: 1rem; padding-bottom: 1rem; }
+      nav .px-6 { padding-left: 1rem; padding-right: 1rem; }
+      nav .text-2xl { font-size: 1.5rem; }
+      nav .w-8 { width: 2rem; height: 2rem; }
+      nav .gap-3 { gap: 0.75rem; }
+      nav .px-5, nav .py-2.5 { padding: 0.5rem 1rem; font-size: 0.875rem; }
+      .text-6xl { font-size: 3rem; }
+      .text-5xl { font-size: 2.5rem; }
+      .text-xl { font-size: 1.125rem; }
+      .p-8, .lg\:p-10 { padding: 1.5rem; }
+      .grid-cols-3 { grid-template-columns: 1fr; }
+      .aspect-[4/3] { aspect-ratio: 4/5; } /* Taller on mobile to avoid cutoff */
+      .bottom-10 { bottom: 2rem; }
+      .bottom-16 { bottom: 3rem; }
+      .px-8, .md\:px-12 { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .py-4, .md\:py-5 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+      .rounded-2xl { border-radius: 1rem; }
+      .gap-5 { gap: 1rem; }
+    }
+
+    @media (max-width: 640px) {
+      .text-3xl { font-size: 1.75rem; }
+      .gap-10 { gap: 1rem; }
+      nav .gap-4 { gap: 0.5rem; }
     }
   </style>
 </head>
 <body class="bg-zinc-950 text-white min-h-screen">
 
   <!-- NAVBAR -->
-  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/8 bg-zinc-950/75 backdrop-blur-xl">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-emerald-500 flex items-center justify-center text-xl">📡</div>
-        <span class="text-2xl font-bold tracking-tight">PulseRadar</span>
-      </div>
-
-      <div class="hidden md:flex items-center gap-10 text-sm font-medium">
-        <a href="#features" class="hover:text-emerald-400 transition-colors">Features</a>
-        <a href="#ai" class="hover:text-emerald-400 transition-colors">AI Agents</a>
-        <a href="#demo" class="hover:text-emerald-400 transition-colors">Live Demo</a>
-        <a href="#why" class="hover:text-emerald-400 transition-colors">Why Real Money</a>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <a href="https://github.com/flamz321/PulseRadar"
-           target="_blank"
-           class="flex items-center gap-2 px-5 py-2.5 text-sm font-medium border border-white/20 hover:border-white/40 rounded-xl transition-all">
-          <i class="fa-brands fa-github"></i>
-          GitHub
-        </a>
-        <a href="#demo"
-           class="bg-white text-zinc-950 px-6 py-2.5 rounded-xl font-semibold hover:bg-emerald-400 hover:text-white transition-all text-sm">
-          Open Dashboard →
-        </a>
-      </div>
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/8 bg-zinc-950/75 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-emerald-500 flex items-center justify-center text-lg">📡</div>
+      <span class="text-xl sm:text-2xl font-bold tracking-tight">PulseRadar</span>
     </div>
-  </nav>
+
+    <div class="hidden md:flex items-center gap-6 lg:gap-10 text-sm font-medium">
+      <a href="#features" class="hover:text-emerald-400 transition-colors">Features</a>
+      <a href="#ai" class="hover:text-emerald-400 transition-colors">AI Agents</a>
+      <a href="#demo" class="hover:text-emerald-400 transition-colors">Live Demo</a>
+      <a href="#why" class="hover:text-emerald-400 transition-colors">Why Real Money</a>
+    </div>
+
+    <div class="flex items-center gap-3 sm:gap-4">
+      <a href="https://github.com/flamz321/PulseRadar"
+         target="_blank"
+         class="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-white/20 hover:border-white/40 rounded-lg transition-all">
+        <i class="fa-brands fa-github"></i>
+        GitHub
+      </a>
+      <a href="https://pulseradar.streamlit.app"
+         class="bg-white text-zinc-950 px-5 py-2 rounded-lg font-semibold hover:bg-emerald-400 hover:text-white transition-all text-sm">
+        Open Dashboard →
+      </a>
+    </div>
+  </div>
+</nav>
 
   <!-- HERO -->
-  <section class="hero-bg min-h-screen flex items-center pt-24 md:pt-32 pb-20">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 w-full">
-      <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
-        <div class="space-y-8 md:space-y-10">
-          <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-emerald-400 text-sm font-medium">
+  <section class="hero-bg min-h-screen flex items-center pt-20 md:pt-32 pb-12 md:pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
+        <div class="space-y-6 md:space-y-10">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-emerald-400 text-xs sm:text-sm font-medium">
             <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
             AI PREDICTIVE RADAR • LIVE INTERNET SCANNING
           </div>
 
-          <h1 class="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-none">
+          <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-tight">
             The <span class="neon-text text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-emerald-400 to-cyan-400">radar</span><br>of the world
           </h1>
 
-          <p class="max-w-xl text-xl md:text-2xl text-zinc-400 leading-relaxed">
+          <p class="max-w-xl text-lg sm:text-xl md:text-2xl text-zinc-400 leading-relaxed">
             AI agents scour X, Facebook, TikTok, Instagram, global news headlines, blogs, forums & public web sources in real time —<br class="hidden sm:block"/>
             then predict how Polymarket & Kalshi markets will move based on real-world reaction patterns.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-5 pt-4">
-            <a href="#demo"
-               class="group bg-gradient-to-r from-violet-600 to-emerald-500 hover:from-violet-500 hover:to-emerald-400 text-white text-lg font-semibold py-5 px-10 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-violet-500/25">
+          <div class="flex flex-col sm:flex-row gap-4 pt-2">
+            <a href="https://pulseradar.streamlit.app"
+               class="group bg-gradient-to-r from-violet-600 to-emerald-500 hover:from-violet-500 hover:to-emerald-400 text-white text-lg font-semibold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-violet-500/25">
               Launch PulseRadar
               <span class="text-2xl group-hover:translate-x-1 transition-transform">→</span>
             </a>
 
             <a href="https://github.com/flamz321/PulseRadar"
                target="_blank"
-               class="border border-white/30 hover:border-white text-lg font-medium py-5 px-9 rounded-2xl flex items-center justify-center gap-3 transition-all">
+               class="border border-white/30 hover:border-white text-lg font-medium py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all">
               <i class="fa-brands fa-github text-xl"></i>
               Star on GitHub
             </a>
           </div>
 
-          <div class="flex items-center gap-8 text-sm text-zinc-500 pt-6">
+          <div class="flex items-center gap-6 text-sm text-zinc-500 pt-4">
             <div class="flex -space-x-3">
               <div class="w-8 h-8 rounded-xl bg-zinc-800 border-2 border-zinc-950 flex items-center justify-center text-xs">🇺🇸</div>
               <div class="w-8 h-8 rounded-xl bg-zinc-800 border-2 border-zinc-950 flex items-center justify-center text-xs">₿</div>
@@ -163,42 +189,42 @@
           </div>
         </div>
 
-        <!-- Hero visual (kept exactly as before) -->
-        <div class="relative mt-12 md:mt-0">
+        <!-- Hero visual -->
+        <div class="relative mt-8 md:mt-0">
           <div class="absolute inset-0 bg-gradient-to-br from-violet-600/15 to-emerald-400/15 rounded-3xl blur-3xl"></div>
-          <div class="glass border border-white/10 rounded-3xl p-5 shadow-2xl relative">
-            <div class="bg-zinc-900 rounded-2xl p-6 md:p-8">
-              <div class="flex justify-between mb-6">
+          <div class="glass border border-white/10 rounded-3xl p-4 md:p-5 shadow-2xl relative">
+            <div class="bg-zinc-900 rounded-2xl p-5 md:p-8">
+              <div class="flex justify-between mb-4 md:mb-6">
                 <div>
                   <div class="text-xs tracking-widest text-zinc-500 uppercase">GLOBAL SENTIMENT</div>
-                  <div class="text-5xl md:text-6xl font-bold text-emerald-400 font-mono">+184</div>
-                  <div class="text-emerald-400 text-sm flex items-center gap-1 mt-1">
-                    <span class="text-xl">↑</span> 14.8% this week
+                  <div class="text-4xl md:text-5xl lg:text-6xl font-bold text-emerald-400 font-mono">+184</div>
+                  <div class="text-emerald-400 text-xs md:text-sm flex items-center gap-1 mt-1">
+                    <span class="text-lg md:text-xl">↑</span> 14.8% this week
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="text-3xl md:text-4xl font-medium">Politics</div>
+                  <div class="text-2xl md:text-3xl lg:text-4xl font-medium">Politics</div>
                   <div class="text-xs text-zinc-500 mt-1">Trump 2028 • 61%</div>
                 </div>
               </div>
 
-              <div class="h-48 md:h-64 bg-zinc-950 rounded-2xl relative overflow-hidden flex items-end">
+              <div class="h-40 md:h-48 lg:h-64 bg-zinc-950 rounded-2xl relative overflow-hidden flex items-end">
                 <svg class="w-full h-full" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path class="pulse-line" d="M0 180 Q100 120 200 160 Q300 80 400 140 Q500 40 600 110 Q700 160 800 90" stroke="#22ff88" stroke-width="5" stroke-linecap="round"/>
                 </svg>
                 <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-400/15 to-transparent"></div>
               </div>
 
-              <div class="mt-6 grid grid-cols-3 gap-4 text-center text-xs md:text-sm">
-                <div class="bg-zinc-800/60 rounded-xl py-3">
+              <div class="mt-4 md:mt-6 grid grid-cols-3 gap-3 text-center text-xs sm:text-sm">
+                <div class="bg-zinc-800/60 rounded-xl py-2 md:py-3">
                   <div class="text-emerald-400">Crypto</div>
                   <div class="font-mono font-medium">+9.2%</div>
                 </div>
-                <div class="bg-zinc-800/60 rounded-xl py-3">
+                <div class="bg-zinc-800/60 rounded-xl py-2 md:py-3">
                   <div class="text-violet-400">Macro</div>
                   <div class="font-mono font-medium">-3.1%</div>
                 </div>
-                <div class="bg-zinc-800/60 rounded-xl py-3">
+                <div class="bg-zinc-800/60 rounded-xl py-2 md:py-3">
                   <div class="text-amber-400">Geo</div>
                   <div class="font-mono font-medium">+27%</div>
                 </div>
@@ -210,83 +236,83 @@
     </div>
   </section>
 
-  <!-- FEATURES -->
-  <section id="features" class="max-w-7xl mx-auto px-6 lg:px-8 py-24 md:py-32">
-    <div class="text-center mb-16">
-      <div class="inline-block px-5 py-2 rounded-full border border-white/10 text-sm font-medium bg-white/3">POWERFUL BY DESIGN</div>
-      <h2 class="text-5xl md:text-6xl font-bold tracking-tighter mt-6">Everything you need.<br class="hidden sm:block"/>Nothing you don't.</h2>
+  <!-- FEATURES (unchanged except responsive padding) -->
+  <section id="features" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+    <div class="text-center mb-12 md:mb-16">
+      <div class="inline-block px-4 py-1.5 rounded-full border border-white/10 text-sm font-medium bg-white/3">POWERFUL BY DESIGN</div>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter mt-6">Everything you need.<br class="hidden sm:block"/>Nothing you don't.</h2>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-8 lg:gap-10">
-      <div class="card-hover glass border border-white/10 rounded-3xl p-8 lg:p-10">
-        <div class="w-14 h-14 rounded-2xl bg-emerald-400/10 flex items-center justify-center text-4xl mb-6">📡</div>
-        <h3 class="text-2xl lg:text-3xl font-semibold mb-4">Internet-Wide Scanning</h3>
-        <p class="text-zinc-400 text-base lg:text-lg leading-relaxed">
+    <div class="grid md:grid-cols-3 gap-6 lg:gap-10">
+      <div class="card-hover glass border border-white/10 rounded-3xl p-6 md:p-8 lg:p-10">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-400/10 flex items-center justify-center text-3xl md:text-4xl mb-6">📡</div>
+        <h3 class="text-xl md:text-2xl lg:text-3xl font-semibold mb-4">Internet-Wide Scanning</h3>
+        <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
           Agents scour X, Facebook, TikTok, Instagram, global news headlines, blogs, forums & public web in real time to detect reaction patterns.
         </p>
-        <div class="mt-10 text-emerald-400 text-sm font-medium flex items-center gap-2">
+        <div class="mt-8 text-emerald-400 text-sm font-medium flex items-center gap-2">
           Updated every few minutes <span class="text-xl">↻</span>
         </div>
       </div>
 
-      <div class="card-hover glass border border-white/10 rounded-3xl p-8 lg:p-10">
-        <div class="w-14 h-14 rounded-2xl bg-violet-400/10 flex items-center justify-center text-4xl mb-6">🧠</div>
-        <h3 class="text-2xl lg:text-3xl font-semibold mb-4">Predictive Oracle Agents</h3>
-        <p class="text-zinc-400 text-base lg:text-lg leading-relaxed">
+      <div class="card-hover glass border border-white/10 rounded-3xl p-6 md:p-8 lg:p-10">
+        <div class="w-12 h-12 rounded-2xl bg-violet-400/10 flex items-center justify-center text-3xl md:text-4xl mb-6">🧠</div>
+        <h3 class="text-xl md:text-2xl lg:text-3xl font-semibold mb-4">Predictive Oracle Agents</h3>
+        <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
           CrewAI agents correlate worldwide sentiment patterns with live Polymarket & Kalshi data to forecast probability moves.
         </p>
-        <div class="mt-10 bg-zinc-900 rounded-2xl p-4 text-sm font-mono text-emerald-300">
+        <div class="mt-8 bg-zinc-900 rounded-2xl p-4 text-sm font-mono text-emerald-300">
           "+12% odds expected on Fed cut market in 6–12h"
         </div>
       </div>
 
-      <div class="card-hover glass border border-white/10 rounded-3xl p-8 lg:p-10">
-        <div class="w-14 h-14 rounded-2xl bg-cyan-400/10 flex items-center justify-center text-4xl mb-6">🌍</div>
-        <h3 class="text-2xl lg:text-3xl font-semibold mb-4">Real-Money + Global Pulse</h3>
-        <p class="text-zinc-400 text-base lg:text-lg leading-relaxed">
+      <div class="card-hover glass border border-white/10 rounded-3xl p-6 md:p-8 lg:p-10">
+        <div class="w-12 h-12 rounded-2xl bg-cyan-400/10 flex items-center justify-center text-3xl md:text-4xl mb-6">🌍</div>
+        <h3 class="text-xl md:text-2xl lg:text-3xl font-semibold mb-4">Real-Money + Global Pulse</h3>
+        <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
           Unified live markets from Polymarket & Kalshi + global sentiment indices across politics, crypto, macro, geopolitics & more.
         </p>
-        <div class="mt-10 text-zinc-400 text-sm">Built in Streamlit • Zero config</div>
+        <div class="mt-8 text-zinc-400 text-sm">Built in Streamlit • Zero config</div>
       </div>
     </div>
   </section>
 
   <!-- AI AGENTS -->
-  <section id="ai" class="border-t border-b border-white/10 bg-black py-24 md:py-32">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-      <div class="grid md:grid-cols-12 gap-12 lg:gap-16 items-center">
+  <section id="ai" class="border-t border-b border-white/10 bg-black py-16 md:py-24 lg:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-12 gap-8 lg:gap-16 items-center">
         <div class="md:col-span-5">
           <div class="md:sticky md:top-24">
             <div class="text-emerald-400 font-medium mb-4 uppercase tracking-wide text-sm">INTELLIGENCE LAYER</div>
-            <h2 class="text-5xl md:text-6xl font-bold tracking-tighter leading-tight">AI Agents that see the world react.</h2>
-            <p class="text-xl md:text-2xl text-zinc-400 mt-8 max-w-lg">
+            <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter leading-tight">AI Agents that see the world react.</h2>
+            <p class="text-lg sm:text-xl md:text-2xl text-zinc-400 mt-6 max-w-lg">
               Scouring X, Facebook, TikTok, Instagram, global news & public web —<br/>
               correlating real-time reactions with Polymarket & Kalshi flow —<br/>
               predicting the next market move.
             </p>
-            <a href="https://github.com/flamz321/PulseRadar" target="_blank" class="mt-10 inline-flex items-center gap-3 text-lg border-b border-white pb-1 hover:text-white transition-colors">
+            <a href="https://github.com/flamz321/PulseRadar" target="_blank" class="mt-8 inline-flex items-center gap-3 text-lg border-b border-white pb-1 hover:text-white transition-colors">
               Meet the crew <span class="text-2xl">→</span>
             </a>
           </div>
         </div>
 
         <div class="md:col-span-7">
-          <div class="glass border border-white/10 rounded-3xl p-8 lg:p-10">
-            <div class="bg-zinc-950 rounded-2xl p-6 lg:p-8 space-y-8">
-              <div class="flex gap-5">
+          <div class="glass border border-white/10 rounded-3xl p-6 md:p-8 lg:p-10">
+            <div class="bg-zinc-950 rounded-2xl p-5 md:p-8 space-y-6">
+              <div class="flex gap-4">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex-shrink-0"></div>
                 <div>
                   <div class="font-semibold">Internet Scout Agent</div>
                   <div class="text-zinc-500 text-xs mt-0.5">Just now</div>
-                  <div class="mt-3 text-base lg:text-lg">"TikTok & Instagram exploding with Fed rate cut memes — bullish sentiment surging"</div>
+                  <div class="mt-2 text-base">TikTok & Instagram exploding with Fed rate cut memes — bullish sentiment surging</div>
                 </div>
               </div>
-              <div class="flex gap-5 opacity-75">
+              <div class="flex gap-4 opacity-75">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex-shrink-0"></div>
                 <div>
                   <div class="font-semibold">Predictive Oracle</div>
                   <div class="text-zinc-500 text-xs mt-0.5">3 min ago</div>
-                  <div class="mt-3 text-base lg:text-lg">"Rate cut probability +19% expected in 6–12h based on global reaction patterns"</div>
+                  <div class="mt-2 text-base">Rate cut probability +19% expected in 6–12h based on global reaction patterns</div>
                 </div>
               </div>
             </div>
@@ -297,29 +323,29 @@
   </section>
 
   <!-- DEMO -->
-  <section id="demo" class="max-w-7xl mx-auto px-6 lg:px-8 py-24 md:py-32">
-    <div class="text-center mb-16">
+  <section id="demo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+    <div class="text-center mb-12 md:mb-16">
       <span class="text-emerald-400 font-medium uppercase tracking-wide text-sm">SEE IT LIVE</span>
-      <h2 class="text-5xl md:text-6xl font-bold tracking-tighter mt-6">The dashboard the crowd is talking about</h2>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter mt-6">The dashboard the crowd is talking about</h2>
     </div>
 
     <div class="max-w-5xl mx-auto rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-zinc-900">
-      <div class="px-6 py-4 flex items-center justify-between border-b border-white/10 text-sm">
-        <div class="flex items-center gap-8">
+      <div class="px-4 sm:px-6 py-3 flex items-center justify-between border-b border-white/10 text-sm">
+        <div class="flex items-center gap-6">
           <span class="text-emerald-400 font-medium">📊 Live Markets</span>
           <span class="hidden sm:inline">📈 Indices</span>
           <span class="hidden sm:inline">🤖 Oracle Chat</span>
         </div>
-        <div class="text-xs font-mono bg-zinc-800 px-4 py-1.5 rounded-full">Last updated: just now</div>
+        <div class="text-xs font-mono bg-zinc-800 px-3 py-1 rounded-full">Last updated: just now</div>
       </div>
       <div class="aspect-[4/3] md:aspect-video bg-black flex items-center justify-center relative">
-        <div class="text-center px-6">
-          <div class="text-6xl md:text-8xl mb-6">🌍📡</div>
-          <p class="text-2xl md:text-3xl font-medium">PulseRadar Dashboard</p>
-          <p class="text-zinc-500 mt-3 text-lg">Open the real app →</p>
+        <div class="text-center px-4 sm:px-6">
+          <div class="text-5xl md:text-6xl lg:text-8xl mb-4 md:mb-6">🌍📡</div>
+          <p class="text-xl md:text-2xl lg:text-3xl font-medium">PulseRadar Dashboard</p>
+          <p class="text-zinc-500 mt-2 md:mt-3 text-base md:text-lg">Open the real app →</p>
         </div>
-        <a href="#" target="_blank"
-           class="absolute bottom-10 md:bottom-16 bg-white text-black px-8 md:px-12 py-4 md:py-5 rounded-2xl font-semibold text-base md:text-lg hover:scale-105 transition-transform">
+        <a href="https://pulseradar.streamlit.app" target="_blank"
+           class="absolute bottom-8 md:bottom-12 lg:bottom-16 bg-white text-black px-6 md:px-10 lg:px-12 py-3 md:py-4 lg:py-5 rounded-2xl font-semibold text-base md:text-lg hover:scale-105 transition-transform">
           Open Live Dashboard Now
         </a>
       </div>
@@ -327,21 +353,21 @@
   </section>
 
   <!-- WHY REAL MONEY -->
-  <section id="why" class="max-w-7xl mx-auto px-6 lg:px-8 py-24 md:py-32 bg-zinc-900 rounded-3xl my-12">
+  <section id="why" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 bg-zinc-900 rounded-3xl my-8 md:my-12">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-5xl md:text-6xl font-bold tracking-tighter">Why real money beats polls and tweets</h2>
-      <div class="mt-16 grid md:grid-cols-2 gap-8 lg:gap-12">
-        <div class="glass rounded-3xl p-8 lg:p-10 border border-emerald-400/20">
-          <div class="text-emerald-400 text-6xl mb-6">💰</div>
-          <div class="text-2xl lg:text-3xl font-semibold mb-4">Skin in the game</div>
-          <p class="text-zinc-400 text-lg leading-relaxed">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter">Why real money beats polls and tweets</h2>
+      <div class="mt-12 md:mt-16 grid md:grid-cols-2 gap-6 lg:gap-12">
+        <div class="glass rounded-3xl p-6 md:p-8 lg:p-10 border border-emerald-400/20">
+          <div class="text-emerald-400 text-5xl md:text-6xl mb-4 md:mb-6">💰</div>
+          <div class="text-xl md:text-2xl lg:text-3xl font-semibold mb-4">Skin in the game</div>
+          <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
             Every price is backed by actual USDC / CFTC-regulated bets. No fake engagement. No bots. Pure conviction.
           </p>
         </div>
-        <div class="glass rounded-3xl p-8 lg:p-10 border border-white/10">
-          <div class="text-6xl mb-6">📉</div>
-          <div class="text-2xl lg:text-3xl font-semibold mb-4">Beats every traditional tracker</div>
-          <p class="text-zinc-400 text-lg leading-relaxed">
+        <div class="glass rounded-3xl p-6 md:p-8 lg:p-10 border border-white/10">
+          <div class="text-5xl md:text-6xl mb-4 md:mb-6">📉</div>
+          <div class="text-xl md:text-2xl lg:text-3xl font-semibold mb-4">Beats every traditional tracker</div>
+          <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
             Polls lag. Social media lies. PulseRadar scans the internet and predicts market moves first — grounded in real-money flow.
           </p>
         </div>
@@ -350,21 +376,21 @@
   </section>
 
   <!-- FINAL CTA -->
-  <section class="py-24 md:py-32 bg-gradient-to-b from-transparent via-emerald-400/5 to-transparent">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-      <h2 class="text-6xl md:text-7xl font-bold tracking-tighter">Ready to see the world's reaction?</h2>
-      <p class="text-xl md:text-2xl text-zinc-400 mt-8 max-w-2xl mx-auto">
+  <section class="py-16 md:py-24 lg:py-32 bg-gradient-to-b from-transparent via-emerald-400/5 to-transparent">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter">Ready to see the world's reaction?</h2>
+      <p class="text-lg sm:text-xl md:text-2xl text-zinc-400 mt-6 md:mt-8 max-w-2xl mx-auto">
         Open source. Free forever. Built for traders who want truth from real money + real-time global patterns.
       </p>
 
-      <div class="flex flex-col sm:flex-row gap-6 justify-center mt-12 md:mt-16">
-        <a href="#demo"
-           class="text-xl md:text-2xl font-semibold bg-white text-black px-12 md:px-16 py-6 md:py-8 rounded-3xl hover:bg-emerald-400 hover:text-white transition-all">
+      <div class="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center mt-8 md:mt-12">
+        <a href="https://pulseradar.streamlit.app" target="_blank"
+           class="text-xl md:text-2xl font-semibold bg-white text-black px-10 md:px-16 py-5 md:py-8 rounded-3xl hover:bg-emerald-400 hover:text-white transition-all">
           Launch PulseRadar Dashboard
         </a>
         <a href="https://github.com/flamz321/PulseRadar"
            target="_blank"
-           class="text-xl md:text-2xl font-semibold border border-white/30 px-12 md:px-16 py-6 md:py-8 rounded-3xl hover:border-emerald-400 transition-all flex items-center justify-center gap-4">
+           class="text-xl md:text-2xl font-semibold border border-white/30 px-10 md:px-16 py-5 md:py-8 rounded-3xl hover:border-emerald-400 transition-all flex items-center justify-center gap-4">
            <i class="fa-brands fa-github"></i>
            Get the code
         </a>
@@ -373,15 +399,15 @@
   </section>
 
   <!-- FOOTER -->
-  <footer class="border-t border-white/10 bg-black py-16 md:py-20">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 text-zinc-500 text-sm">
-      <div class="flex flex-col md:flex-row justify-between items-center gap-y-8">
+  <footer class="border-t border-white/10 bg-black py-12 md:py-16 lg:py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-zinc-500 text-sm">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-y-6 md:gap-y-0">
         <div class="flex items-center gap-3">
           <span class="text-3xl">📡</span>
           <span class="font-bold text-white text-2xl tracking-tight">PulseRadar</span>
         </div>
 
-        <div class="flex gap-8 md:gap-10">
+        <div class="flex gap-6 md:gap-10">
           <a href="https://github.com/flamz321/PulseRadar" class="hover:text-white transition-colors">GitHub</a>
           <a href="https://github.com/flamz321" class="hover:text-white transition-colors">Built by Flamz321</a>
         </div>
