@@ -19,16 +19,23 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS matching the true dark/modern aesthetic of PulseRadar.xyz
+# Custom Navbar & Global CSS matching PulseRadar.xyz
 st.markdown("""
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap');
 
+    /* BASE STREAMLIT OVERRIDES */
     .stApp {
-        background-color: #000000;
-        background-image: radial-gradient(circle at 50% 0%, #11111a 0%, #000000 70%);
+        background-color: #09090b; /* bg-zinc-950 */
+        background-image: radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.15) 0%, #09090b 70%);
         color: #ffffff;
         font-family: 'Inter', sans-serif;
+    }
+    
+    /* Push content down so it isn't hidden behind the fixed navbar */
+    .appview-container .main .block-container {
+        padding-top: 6rem !important; 
     }
     
     /* Hide default Streamlit clutter */
@@ -41,12 +48,112 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
 
-    /* Titles */
+    /* --- FIXED NAVBAR --- */
+    .custom-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999999;
+        background: rgba(9, 9, 11, 0.75); /* bg-zinc-950/75 */
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-family: 'Inter', sans-serif;
+    }
+    .nav-container {
+        max-width: 80rem; /* max-w-7xl */
+        margin: 0 auto;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .nav-logo-box {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.5rem;
+        background: linear-gradient(to bottom right, #7c3aed, #10b981); /* violet-600 to emerald-500 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.125rem;
+    }
+    .nav-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: white;
+        text-decoration: none;
+    }
+    .nav-center {
+        display: none; 
+    }
+    @media (min-width: 768px) {
+        .nav-center {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    }
+    .nav-link {
+        color: #d4d4d8;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .nav-link:hover {
+        color: #34d399; /* emerald-400 */
+    }
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .btn-github {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-github:hover {
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+    .btn-primary {
+        background: white;
+        color: #09090b;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: #34d399; /* emerald-400 */
+        color: white;
+    }
+
+    /* --- MAIN UI ELEMENTS --- */
     .main-title {
-        font-size: 3.5rem;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-size: 4rem;
         font-weight: 800;
         text-align: center;
-        background: linear-gradient(180deg, #FFFFFF 0%, #a1a1aa 100%);
+        background: linear-gradient(to right, #a78bfa, #34d399, #22d3ee); /* Landing page neon gradient */
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.1;
@@ -67,18 +174,19 @@ st.markdown("""
 
     /* Metric Cards */
     .metric-card {
-        background: rgba(20, 20, 25, 0.4);
+        background: rgba(255, 255, 255, 0.03); /* Glass */
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        border-radius: 1.5rem; /* rounded-3xl */
         padding: 24px;
         text-align: center;
-        backdrop-filter: blur(12px);
-        transition: all 0.2s ease;
+        backdrop-filter: blur(16px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Match landing page hover */
     }
     
     .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(124, 58, 237, 0.15);
         border-color: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
     }
 
     .metric-icon {
@@ -87,6 +195,7 @@ st.markdown("""
     }
 
     .metric-val {
+        font-family: 'Space Grotesk', sans-serif !important;
         font-size: 2.5rem;
         font-weight: 700;
         color: #ffffff;
@@ -113,7 +222,7 @@ st.markdown("""
     }
     
     .market-card:hover {
-        border-color: rgba(59, 130, 246, 0.4);
+        border-color: rgba(52, 211, 153, 0.4);
         background: rgba(25, 25, 30, 0.8);
     }
 
@@ -125,8 +234,8 @@ st.markdown("""
     }
 
     .market-tag {
-        color: #60a5fa;
-        background: rgba(59, 130, 246, 0.1);
+        color: #34d399; /* emerald-400 */
+        background: rgba(52, 211, 153, 0.1);
         padding: 4px 12px;
         border-radius: 9999px;
         font-weight: 600;
@@ -185,15 +294,15 @@ st.markdown("""
 
     /* Radar Pulse Indicator */
     @keyframes pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
     }
     .pulse-dot {
         display: inline-block;
         width: 10px;
         height: 10px;
-        background-color: #3b82f6;
+        background-color: #34d399; /* emerald-400 */
         border-radius: 50%;
         animation: pulse 2s infinite;
         margin-right: 8px;
@@ -205,10 +314,32 @@ st.markdown("""
         margin: 2.5rem 0;
     }
 </style>
+
+<div class="custom-navbar">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="nav-logo-box">📡</div>
+            <a href="https://pulseradar.xyz" class="nav-title">PulseRadar</a>
+        </div>
+        <div class="nav-center">
+            <a href="https://pulseradar.xyz#features" class="nav-link">Features</a>
+            <a href="https://pulseradar.xyz#ai" class="nav-link">AI Agents</a>
+            <a href="https://pulseradar.xyz#why" class="nav-link">Why Real Money</a>
+        </div>
+        <div class="nav-right">
+            <a href="https://github.com/flamz321/PulseRadar" target="_blank" class="btn-github">
+                <i class="fa-brands fa-github"></i> GitHub
+            </a>
+            <a href="https://pulseradar.xyz" class="btn-primary">
+                Main Site →
+            </a>
+        </div>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # Header Section
-st.markdown('<div class="main-title">The Radar of the World</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">Live Dashboard</div>', unsafe_allow_html=True)
 st.markdown("""
 <div class="sub-title">
     AI agents scour X, Facebook, TikTok, Instagram, global news headlines, blogs, 
@@ -363,7 +494,7 @@ with tab2:
                 title={'text': "Global Pulse Index", 'font': {'color': 'white', 'size': 16}},
                 gauge={
                     'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "rgba(255,255,255,0.2)"},
-                    'bar': {'color': "#3b82f6"},
+                    'bar': {'color': "#34d399"}, /* emerald-400 */
                     'bgcolor': 'rgba(255,255,255,0.05)',
                     'borderwidth': 0,
                     'steps': [
@@ -378,14 +509,14 @@ with tab2:
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            # Bar Chart Using Pure go.Bar to prevent px layout validation ValueError
+            # Bar Chart Using Pure go.Bar
             cat_df = sentiment_df[sentiment_df['Category'] != 'OVERALL'].copy()
             
             fig2 = go.Figure(data=[
                 go.Bar(
                     x=cat_df['Category'],
                     y=cat_df['Sentiment'],
-                    marker_color='#3b82f6',
+                    marker_color='#34d399', /* emerald-400 */
                     text=cat_df['Sentiment'].apply(lambda x: f'{x:.2%}'),
                     textposition='outside',
                     textfont=dict(color='white')
