@@ -51,24 +51,18 @@ def calculate_sentiment_score(df):
 def get_category_indices(df):
     """
     Calculate sentiment indices for different categories
-    Returns a dictionary with category names and their sentiment scores
+    Returns a DataFrame for dashboard compatibility
     """
     if df.empty:
-        return {
-            'Politics': 0.5,
-            'Crypto': 0.5,
-            'Macro': 0.5,
-            'Geopolitics': 0.5,
-            'Culture': 0.5,
-            'Overall': 0.5
-        }
+        # Return empty DataFrame with expected columns
+        return pd.DataFrame(columns=['Category', 'Sentiment Score', 'Market Count', 'Total Volume'])
     
     # Ensure we have sentiment scores
     if 'sentiment_score' not in df.columns:
         df = calculate_sentiment_score(df)
     
     categories = ['Politics', 'Crypto', 'Macro', 'Geopolitics', 'Culture']
-    indices = {}
+    indices_data = []
     
     for category in categories:
         cat_df = df[df['category'] == category]
@@ -78,21 +72,37 @@ def get_category_indices(df):
                 cat_df['sentiment_score'], 
                 weights=cat_df['volumeNum'].fillna(1)
             )
-            indices[category] = round(float(weighted_sentiment), 3)
+            market_count = len(cat_df)
+            total_volume = cat_df['volumeNum'].sum()
+            
+            indices_data.append({
+                'Category': category,
+                'Sentiment Score': round(float(weighted_sentiment), 3),
+                'Market Count': market_count,
+                'Total Volume': f"${total_volume:,.0f}"
+            })
         else:
-            indices[category] = 0.5
+            indices_data.append({
+                'Category': category,
+                'Sentiment Score': 0.5,
+                'Market Count': 0,
+                'Total Volume': "$0"
+            })
     
-    # Calculate overall index (weighted by volume across all categories)
+    # Calculate overall index
     if not df.empty and 'volumeNum' in df.columns:
         overall = np.average(
             df['sentiment_score'], 
             weights=df['volumeNum'].fillna(1)
         )
-        indices['Overall'] = round(float(overall), 3)
-    else:
-        indices['Overall'] = 0.5
+        indices_data.append({
+            'Category': 'OVERALL',
+            'Sentiment Score': round(float(overall), 3),
+            'Market Count': len(df),
+            'Total Volume': f"${df['volumeNum'].sum():,.0f}"
+        })
     
-    return indices
+    return pd.DataFrame(indices_data)
 
 def get_sentiment_trend(market_history):
     """
@@ -131,9 +141,16 @@ def get_top_markets_by_sentiment(df, category=None, limit=5):
     if category and category != 'All':
         df = df[df['category'] == category]
     
-    return df.nlargest(limit, 'sentiment_score')[
+    result = df.nlargest(limit, 'sentiment_score')[
         ['question', 'category', 'yes_price', 'volumeNum', 'sentiment_score', 'source']
-    ]
+    ].copy()
+    
+    # Format for display
+    result['yes_price'] = result['yes_price'].apply(lambda x: f"{x:.1%}")
+    result['volumeNum'] = result['volumeNum'].apply(lambda x: f"${x:,.0f}")
+    result['sentiment_score'] = result['sentiment_score'].apply(lambda x: f"{x:.3f}")
+    
+    return result
 
 def get_sentiment_summary(df):
     """
@@ -150,7 +167,6 @@ def get_sentiment_summary(df):
     
     # Categorize overall sentiment
     if avg_sentiment > 0.7:
-    else:
         overall = "Extremely Bullish"
     elif avg_sentiment > 0.6:
         overall = "Bullish"
