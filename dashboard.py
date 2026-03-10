@@ -1,28 +1,27 @@
-import sys
-import os
-
-# Add src/agents/ to sys.path (only agents/ remains nested)
-agents_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'agents'))
-if agents_dir not in sys.path:
-    sys.path.insert(0, agents_dir)
-
-print("Agents dir added to sys.path:", agents_dir)
-print("Current working dir:", os.getcwd())
-
-# Root-level imports (fetcher & sentiment are now in root)
-from fetcher import get_active_markets
-from sentiment import calculate_sentiment_score, get_category_indices
-from crew import run_pulse_crew  # from src/agents/crew.py
-
 import streamlit as st
 import plotly.express as px
+import os
 
-st.set_page_config(page_title="PulseRadar", page_icon="📡", layout="wide")
+# Root-level imports (all files now in root or same-level)
+from fetcher import get_active_markets
+from sentiment import calculate_sentiment_score, get_category_indices
+from src.agents.crew import run_pulse_crew  # agents still nested, but import from root
 
+# Page config
+st.set_page_config(
+    page_title="PulseRadar",
+    page_icon="📡",
+    layout="wide"
+)
+
+# Title & caption
 st.title("🌍 PulseRadar")
-st.caption("AI Predictive Sentiment Radar • Polymarket + Kalshi • Scans social/news to predict moves")
+st.caption(
+    "AI Predictive Sentiment Radar • Polymarket + Kalshi • "
+    "Scans social/news in real-time to forecast market moves"
+)
 
-# Sidebar
+# Sidebar controls
 st.sidebar.header("Controls")
 refresh = st.sidebar.button("🔄 Refresh Live Data")
 limit = st.sidebar.slider("Markets to show", 10, 150, 50)
@@ -30,47 +29,79 @@ min_vol = st.sidebar.number_input("Min volume ($)", 1000, 1000000, 25000, step=5
 
 # Load data
 if refresh or 'df' not in st.session_state:
-    with st.spinner("Fetching live markets..."):
+    with st.spinner("Fetching live markets from Polymarket & Kalshi..."):
         raw = get_active_markets(limit=limit * 2, min_volume=min_vol)
         df = calculate_sentiment_score(raw)
         st.session_state.df = df
 
 df = st.session_state.get('df', None)
 if df is None or df.empty:
-    st.error("No markets found — lower min volume?")
+    st.error("No markets found — try lowering the min volume filter.")
     st.stop()
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["📊 Live Markets", "📈 Indices", "🤖 Oracle"])
+tab1, tab2, tab3 = st.tabs([
+    "📊 Live Markets",
+    "📈 Category Indices",
+    "🤖 Predictive Oracle"
+])
 
 with tab1:
-    st.subheader("Live Markets")
-    show = df[['question', 'source', 'yes_price', 'volumeNum', 'oneDayPriceChange', 'category']].copy()
-    show['yes_price'] = show['yes_price'].apply(lambda x: f"{x:.1%}")
-    st.dataframe(show.rename(columns={'yes_price': 'Yes %', 'volumeNum': 'Vol $', 'oneDayPriceChange': '24h Δ'}), use_container_width=True, hide_index=True)
+    st.subheader("Combined Live Markets (Polymarket + Kalshi)")
+    show_cols = [
+        'question', 'source', 'yes_price', 'volumeNum',
+        'oneDayPriceChange', 'category'
+    ]
+    display_df = df[show_cols].copy()
+    display_df['yes_price'] = display_df['yes_price'].apply(lambda x: f"{x:.1%}")
+    display_df = display_df.rename(columns={
+        'yes_price': 'Yes Prob',
+        'volumeNum': 'Volume ($)',
+        'oneDayPriceChange': '24h Δ',
+        'source': 'Platform'
+    })
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-    fig = px.bar(df.head(12), x='question', y='volumeNum', color='source', title="Top Volume", height=500)
+    fig = px.bar(
+        df.head(12),
+        x='question',
+        y='volumeNum',
+        color='source',
+        title="Top 12 Markets by Volume",
+        text_auto=True,
+        height=500
+    )
     fig.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
-    st.subheader("Sentiment by Category")
+    st.subheader("Global Sentiment by Category")
     indices = get_category_indices(df)
     if not indices.empty:
         st.dataframe(indices, use_container_width=True)
     else:
-        st.info("No category data.")
+        st.info("No category data available in current fetch.")
 
 with tab3:
-    st.subheader("Predictive Oracle")
+    st.subheader("🤖 Predictive Oracle Chat")
     if not any(os.getenv(k) for k in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GROQ_API_KEY"]):
-        st.warning("Add LLM API key in Secrets to enable Oracle.")
+        st.warning(
+            "Add at least one LLM API key (OpenAI, Claude, Groq, etc.) "
+            "to Streamlit Secrets to unlock the Predictive Oracle agents."
+        )
     else:
-        st.info("Ask anything (e.g. 'Predict Fed rate reaction')")
-        if prompt := st.chat_input("Ask Oracle..."):
-            with st.spinner("Analyzing..."):
+        st.info(
+            "Ask the Oracle anything — e.g.\n"
+            "• Predict reaction to next Fed rate decision\n"
+            "• How will Trump news affect 2028 odds?\n"
+            "• What's the buzz around Bitcoin ETF markets?"
+        )
+
+        if prompt := st.chat_input("Ask the Oracle..."):
+            with st.spinner("Scanning markets + external signals..."):
                 try:
                     report = run_pulse_crew(prompt)
                     st.markdown(report)
                 except Exception as e:
-                    st.error(f"Prediction error: {str(e)}")
+                    st.error(f"Error running prediction: {str(e)}")
+                    st.info("Make sure your LLM API key is valid and you have internet access.")
