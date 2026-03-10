@@ -1,37 +1,45 @@
 import sys
 import os
 
-# Force add repo root to sys.path (fixes No module named 'src')
-repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# ────────────────────────────────────────────────
+# Fix for ModuleNotFoundError: No module named 'src'
+# on Streamlit Cloud (runs from repo root)
+# ────────────────────────────────────────────────
+
+# Get absolute path to this script (src/dashboard.py)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Get absolute path to repo root (parent of src/)
+repo_root = os.path.abspath(os.path.join(script_dir, '..'))
+
+# Insert repo root at the very beginning of sys.path
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
-# Now safe imports
+# Optional debug prints (visible in Streamlit Cloud logs)
+print("Repo root added to sys.path:", repo_root)
+print("Current sys.path:", sys.path)
+print("Current working directory:", os.getcwd())
+
+# ────────────────────────────────────────────────
+# Now safe to import from src/
+# ────────────────────────────────────────────────
+
 from src.fetcher import get_active_markets
 from src.sentiment import calculate_sentiment_score, get_category_indices
 from src.agents.crew import run_pulse_crew
 
 import streamlit as st
 import plotly.express as px
-import os  # already imported above, but safe to keep
 
-# Page config
-st.set_page_config(page_title="PulseRadar", page_icon="📡", layout="wide")
-
-# Title & caption
-st.title("🌍 PulseRadar")
-st.caption("AI Predictive Sentiment Radar • Polymarket + Kalshi • Scans social/news to predict moves")
-
-
-
-# Page config
+# Page config (only once)
 st.set_page_config(
     page_title="PulseRadar",
     page_icon="📡",
     layout="wide"
 )
 
-# Title & description
+# Title & caption
 st.title("🌍 PulseRadar")
 st.caption(
     "AI Predictive Sentiment Radar • Polymarket + Kalshi • "
@@ -104,8 +112,8 @@ with tab3:
     st.subheader("🤖 Predictive Oracle Chat")
     if not os.getenv("OPENAI_API_KEY"):
         st.warning(
-            "Add your OpenAI API key to `.env` to unlock "
-            "the Predictive Oracle agents."
+            "Add your OpenAI API key to `.env` or Streamlit Secrets "
+            "to unlock the Predictive Oracle agents."
         )
     else:
         st.info(
@@ -122,4 +130,4 @@ with tab3:
                     st.markdown(report)
                 except Exception as e:
                     st.error(f"Error running prediction: {str(e)}")
-                    st.info("Make sure your OpenAI key is valid and you have internet access.")
+                    st.info("Make sure your LLM API key is valid and you have internet access.")
