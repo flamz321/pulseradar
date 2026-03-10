@@ -1,21 +1,36 @@
 import sys
 import os
 
-# Explicitly add 'src/' folder to sys.path
-# This fixes ModuleNotFoundError and SyntaxError on relative imports like 'agents.crew'
-src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
-if src_path not in sys.path:
-    sys.path.insert(0, src_path)
+# ────────────────────────────────────────────────
+# Explicit path fixes for Streamlit Cloud root execution
+# ────────────────────────────────────────────────
 
-# Debug prints (visible in Streamlit logs – comment out later if you want)
-print(f"Added src/ path: {src_path}")
-print(f"sys.path now includes src: {'src' in ' '.join(sys.path)}")
-print(f"Current working dir: {os.getcwd()}")
+# Get dashboard.py directory (root)
+root_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Now import everything from src/ using absolute paths
+# Add root/src/ and root/src/agents/ to sys.path
+src_dir = os.path.join(root_dir, 'src')
+agents_dir = os.path.join(src_dir, 'agents')
+
+for path in [src_dir, agents_dir]:
+    abs_path = os.path.abspath(path)
+    if abs_path not in sys.path:
+        sys.path.insert(0, abs_path)
+
+# Debug prints (comment out later if desired)
+print("Added paths to sys.path:")
+print(f"  - {src_dir}")
+print(f"  - {agents_dir}")
+print("Current sys.path:", sys.path)
+print("Current working dir:", os.getcwd())
+
+# ────────────────────────────────────────────────
+# Safe absolute imports (no dotted relative syntax)
+# ────────────────────────────────────────────────
+
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
-from agents.crew import run_pulse_crew
+from crew import run_pulse_crew  # ← direct from agents/crew.py (no agents.)
 
 import streamlit as st
 import plotly.express as px
