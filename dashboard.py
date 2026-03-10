@@ -4,33 +4,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 import os
 
-# Hide Streamlit branding & make it feel native
-st.markdown("""
-<style>
-    /* Hide header, footer, toolbar, padding */
-    .stAppHeader, footer, .stDeployButton, .stSidebarUserContent, .st-emotion-cache-1y4p8pa {
-        display: none !important;
-    }
-    .main .block-container {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        max-width: 100% !important;
-    }
-    .stApp {
-        background-color: transparent !important;
-    }
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
-    /* Remove default Streamlit scrollbar */
-    ::-webkit-scrollbar { display: none; }
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-</style>
-""", unsafe_allow_html=True)
-
 # Import our modules
 try:
     from fetcher import get_all_markets
