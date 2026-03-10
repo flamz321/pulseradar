@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
 import os
-import requests
 
 # Import our modules
 try:
@@ -349,83 +348,34 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Data Loading (Live Kalshi Public API Data + Local)
+# Data Loading (Mocked to be safe if modules aren't fully hooked up)
 @st.cache_data(ttl=300)
 def load_markets():
-    live_data = []
-    
-    # 1. Fetch Real-time data from Kalshi Public API
-    try:
-        url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open"
-        
-        # Adding a User-Agent prevents Kalshi from blocking the request as a bot
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            kalshi_markets = response.json().get('markets', [])
-            
-            for m in kalshi_markets:
-                # Kalshi returns prices in cents (e.g., 61). Convert to decimal.
-                yes_ask = m.get('yes_ask', 0)
-                last_price = m.get('last_price', 0)
-                price_cents = yes_ask if yes_ask > 0 else last_price
-                yes_price = price_cents / 100.0 if price_cents > 0 else 0.50
-                
-                vol = float(m.get('volume', 0))
-                category = str(m.get('category', 'General')).capitalize()
-                title = m.get('title', m.get('ticker', 'Unknown Market'))
-                
-                live_data.append({
-                    'question': title,
-                    'category': category,
-                    'yes_price': yes_price,
-                    'volume': vol,
-                    'source': 'Kalshi',
-                    'sentiment': yes_price # Default sentiment proxy until fully wired
-                })
-        else:
-            # Displays a visible error on your dashboard if the API connection fails
-            st.warning(f"⚠️ Failed to connect to Kalshi API. HTTP Status: {response.status_code}")
-            
-    except Exception as e:
-        st.warning(f"⚠️ Network error while trying to fetch Kalshi data: {e}")
-
-    # 2. Add local modules data (Polymarket or other files)
     try:
         raw_df = get_all_markets(100)
         if not raw_df.empty:
-            local_df = calculate_sentiment(raw_df)
-            live_data.extend(local_df.to_dict('records'))
+            return calculate_sentiment(raw_df)
     except Exception:
         pass
-        
-    # 3. Return Combined DataFrame or Fallback
-    if len(live_data) > 0:
-        df = pd.DataFrame(live_data)
-        # Sort by volume so the active ones are on top, but keep the 0 volume ones
-        df = df.sort_values(by='volume', ascending=False)
-        return df
-    else:
-        # Safe Fallback Demo Data
-        return pd.DataFrame({
-            'question': [
-                'Donald Trump to win 2028 Presidential Election?',
-                'Bitcoin to reach $100,000 by end of 2024?',
-                'Federal Reserve to cut rates in September?'
-            ],
-            'category': ['Politics', 'Crypto', 'Macro'],
-            'yes_price': [0.61, 0.72, 0.45],
-            'volume': [2400000, 1800000, 3200000],
-            'source': ['Polymarket', 'Polymarket', 'Kalshi'],
-            'sentiment': [0.72, 0.85, 0.40] 
-        })
+    
+    # Safe Fallback Data
+    sample = pd.DataFrame({
+        'question': [
+            'Donald Trump to win 2028 Presidential Election?',
+            'Bitcoin to reach $100,000 by end of 2024?',
+            'Federal Reserve to cut rates in September?',
+            'EU to approve new migration pact this year?',
+            'SpaceX to complete Starship orbital test?',
+            'Taylor Swift to endorse Biden in 2024?'
+        ],
+        'category': ['Politics', 'Crypto', 'Macro', 'Geopolitics', 'Technology', 'Culture'],
+        'yes_price': [0.61, 0.72, 0.45, 0.83, 0.34, 0.67],
+        'volume': [2400000, 1800000, 3200000, 950000, 1500000, 2100000],
+        'source': ['Polymarket', 'Polymarket', 'Kalshi', 'Polymarket', 'Kalshi', 'Polymarket'],
+        'sentiment': [0.72, 0.85, 0.40, 0.65, 0.80, 0.55] 
+    })
+    return sample
 
-# Initialize session state
 if 'df' not in st.session_state:
     st.session_state.df = load_markets()
 
@@ -435,9 +385,7 @@ df = st.session_state.df
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    # Use str.contains to catch variations like "Politics" or "Political" safely
-    politics_df = df[df['category'].str.contains('Politic', na=False, case=False)]
-    politics_sentiment = politics_df['sentiment'].mean() if not politics_df.empty else 0.5
+    politics_sentiment = df[df['category'] == 'Politics']['sentiment'].mean() if not df[df['category'] == 'Politics'].empty else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">🏛️</div>
@@ -447,8 +395,7 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    crypto_df = df[df['category'].str.contains('Crypto', na=False, case=False)]
-    crypto_sentiment = crypto_df['sentiment'].mean() if not crypto_df.empty else 0.5
+    crypto_sentiment = df[df['category'] == 'Crypto']['sentiment'].mean() if not df[df['category'] == 'Crypto'].empty else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">₿</div>
@@ -488,11 +435,9 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        cats = ["All"] + sorted(list(df['category'].unique()))
-        category_filter = st.selectbox("Category", cats)
+        category_filter = st.selectbox("Category", ["All", "Politics", "Crypto", "Macro", "Geopolitics", "Culture", "Technology"])
     with col2:
-        platforms = ["All"] + sorted(list(df['source'].unique()))
-        platform_filter = st.selectbox("Platform", platforms)
+        platform_filter = st.selectbox("Platform", ["All", "Polymarket", "Kalshi"])
     with col3:
         sort_by = st.selectbox("Sort by", ["Volume", "Sentiment", "Probability"])
     
@@ -505,7 +450,7 @@ with tab1:
     else: filtered_df = filtered_df.sort_values('yes_price', ascending=False)
     
     st.markdown("<br>", unsafe_allow_html=True)
-    for _, market in filtered_df.head(15).iterrows():
+    for _, market in filtered_df.head(10).iterrows():
         prob_class = "prob-high" if market['yes_price'] > 0.66 else "prob-low" if market['yes_price'] < 0.33 else "prob-mid"
         st.markdown(f"""
         <div class="market-card">
@@ -524,12 +469,14 @@ with tab1:
 with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Safe fallback for category sentiment dataframe
     try:
         sentiment_df = get_category_sentiment(df)
     except Exception:
+        # Fallback if the function is missing
         mock_data = []
         for cat in df['category'].unique():
-            mock_data.append({'Category': cat, 'Sentiment': df[df['category'] == cat]['sentiment'].mean(), 'Markets': len(df[df['category'] == cat]), 'Volume': f"${df[df['category'] == cat]['volume'].sum():,}"})
+            mock_data.append({'Category': cat, 'Sentiment': df[df['category'] == cat]['sentiment'].mean(), 'Markets': 10, 'Volume': '$1,000,000'})
         mock_data.append({'Category': 'OVERALL', 'Sentiment': df['sentiment'].mean(), 'Markets': len(df), 'Volume': f"${df['volume'].sum():,}"})
         sentiment_df = pd.DataFrame(mock_data)
 
@@ -539,6 +486,7 @@ with tab2:
         with col1:
             overall = sentiment_df[sentiment_df['Category'] == 'OVERALL'].iloc[0]
             
+            # Gauge Chart Using Pure go.Indicator (Error Free)
             fig = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=overall['Sentiment'],
@@ -546,7 +494,7 @@ with tab2:
                 title={'text': "Global Pulse Index", 'font': {'color': 'white', 'size': 16}},
                 gauge={
                     'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "rgba(255,255,255,0.2)"},
-                    'bar': {'color': "#34d399"}, 
+                    'bar': {'color': "#34d399"}, # emerald-400 
                     'bgcolor': 'rgba(255,255,255,0.05)',
                     'borderwidth': 0,
                     'steps': [
@@ -561,13 +509,14 @@ with tab2:
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
+            # Bar Chart Using Pure go.Bar
             cat_df = sentiment_df[sentiment_df['Category'] != 'OVERALL'].copy()
             
             fig2 = go.Figure(data=[
                 go.Bar(
                     x=cat_df['Category'],
                     y=cat_df['Sentiment'],
-                    marker_color='#34d399', 
+                    marker_color='#34d399', # emerald-400 
                     text=cat_df['Sentiment'].apply(lambda x: f'{x:.2%}'),
                     textposition='outside',
                     textfont=dict(color='white')
