@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 import requests
 
-# Import our modules (will gracefully fail if not present)
+# Import our modules
 try:
     from fetcher import get_all_markets
     from sentiment import calculate_sentiment, get_category_sentiment
@@ -28,16 +28,18 @@ st.markdown("""
 
     /* BASE STREAMLIT OVERRIDES */
     .stApp {
-        background-color: #09090b; 
+        background-color: #09090b; /* bg-zinc-950 */
         background-image: radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.15) 0%, #09090b 70%);
         color: #ffffff;
         font-family: 'Inter', sans-serif;
     }
     
+    /* Push content down so it isn't hidden behind the fixed navbar */
     .appview-container .main .block-container {
         padding-top: 6rem !important; 
     }
     
+    /* Hide default Streamlit clutter */
     header {visibility: hidden;}
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
@@ -54,14 +56,14 @@ st.markdown("""
         left: 0;
         right: 0;
         z-index: 999999;
-        background: rgba(9, 9, 11, 0.75); 
+        background: rgba(9, 9, 11, 0.75); /* bg-zinc-950/75 */
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         font-family: 'Inter', sans-serif;
     }
     .nav-container {
-        max-width: 80rem; 
+        max-width: 80rem; /* max-w-7xl */
         margin: 0 auto;
         padding: 1rem 1.5rem;
         display: flex;
@@ -77,7 +79,7 @@ st.markdown("""
         width: 1.75rem;
         height: 1.75rem;
         border-radius: 0.5rem;
-        background: linear-gradient(to bottom right, #7c3aed, #10b981); 
+        background: linear-gradient(to bottom right, #7c3aed, #10b981); /* violet-600 to emerald-500 */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -108,7 +110,7 @@ st.markdown("""
         transition: color 0.2s;
     }
     .nav-link:hover {
-        color: #34d399; 
+        color: #34d399; /* emerald-400 */
     }
     .nav-right {
         display: flex;
@@ -142,7 +144,7 @@ st.markdown("""
         transition: all 0.2s;
     }
     .btn-primary:hover {
-        background: #34d399; 
+        background: #34d399; /* emerald-400 */
         color: white;
     }
 
@@ -152,7 +154,7 @@ st.markdown("""
         font-size: 4rem;
         font-weight: 800;
         text-align: center;
-        background: linear-gradient(to right, #a78bfa, #34d399, #22d3ee); 
+        background: linear-gradient(to right, #a78bfa, #34d399, #22d3ee); /* Landing page neon gradient */
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.1;
@@ -173,13 +175,13 @@ st.markdown("""
 
     /* Metric Cards */
     .metric-card {
-        background: rgba(255, 255, 255, 0.03); 
+        background: rgba(255, 255, 255, 0.03); /* Glass */
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 1.5rem; 
+        border-radius: 1.5rem; /* rounded-3xl */
         padding: 24px;
         text-align: center;
         backdrop-filter: blur(16px);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Match landing page hover */
     }
     
     .metric-card:hover {
@@ -233,7 +235,7 @@ st.markdown("""
     }
 
     .market-tag {
-        color: #34d399; 
+        color: #34d399; /* emerald-400 */
         background: rgba(52, 211, 153, 0.1);
         padding: 4px 12px;
         border-radius: 9999px;
@@ -301,7 +303,7 @@ st.markdown("""
         display: inline-block;
         width: 10px;
         height: 10px;
-        background-color: #34d399; 
+        background-color: #34d399; /* emerald-400 */
         border-radius: 50%;
         animation: pulse 2s infinite;
         margin-right: 8px;
@@ -347,7 +349,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Data Loading (Live Kalshi Public API Data)
+# Data Loading (Live Kalshi Public API Data + Local)
 @st.cache_data(ttl=300)
 def load_markets():
     live_data = []
@@ -355,29 +357,43 @@ def load_markets():
     # 1. Fetch Real-time data from Kalshi Public API
     try:
         url = "https://api.elections.kalshi.com/trade-api/v2/markets?limit=100&status=open"
-        response = requests.get(url, headers={"Accept": "application/json"}, timeout=10)
+        
+        # Adding a User-Agent prevents Kalshi from blocking the request as a bot
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
         
         if response.status_code == 200:
             kalshi_markets = response.json().get('markets', [])
             
             for m in kalshi_markets:
                 # Kalshi returns prices in cents (e.g., 61). Convert to decimal.
-                price_cents = m.get('yes_ask', m.get('last_price', 50))
-                yes_price = price_cents / 100.0 if price_cents and price_cents > 1 else price_cents
+                yes_ask = m.get('yes_ask', 0)
+                last_price = m.get('last_price', 0)
+                price_cents = yes_ask if yes_ask > 0 else last_price
+                yes_price = price_cents / 100.0 if price_cents > 0 else 0.50
                 
                 vol = float(m.get('volume', 0))
+                category = str(m.get('category', 'General')).capitalize()
                 title = m.get('title', m.get('ticker', 'Unknown Market'))
                 
                 live_data.append({
                     'question': title,
-                    'category': 'Kalshi Live',
+                    'category': category,
                     'yes_price': yes_price,
                     'volume': vol,
                     'source': 'Kalshi',
-                    'sentiment': yes_price # Default sentiment proxy until mapped
+                    'sentiment': yes_price # Default sentiment proxy until fully wired
                 })
+        else:
+            # Displays a visible error on your dashboard if the API connection fails
+            st.warning(f"⚠️ Failed to connect to Kalshi API. HTTP Status: {response.status_code}")
+            
     except Exception as e:
-        print(f"Error fetching from Kalshi API: {e}")
+        st.warning(f"⚠️ Network error while trying to fetch Kalshi data: {e}")
 
     # 2. Add local modules data (Polymarket or other files)
     try:
@@ -389,10 +405,10 @@ def load_markets():
         pass
         
     # 3. Return Combined DataFrame or Fallback
-    if live_data:
+    if len(live_data) > 0:
         df = pd.DataFrame(live_data)
-        # Drop markets with 0 volume to keep UI clean and sort highest first
-        df = df[df['volume'] > 0].sort_values(by='volume', ascending=False)
+        # Sort by volume so the active ones are on top, but keep the 0 volume ones
+        df = df.sort_values(by='volume', ascending=False)
         return df
     else:
         # Safe Fallback Demo Data
@@ -409,6 +425,7 @@ def load_markets():
             'sentiment': [0.72, 0.85, 0.40] 
         })
 
+# Initialize session state
 if 'df' not in st.session_state:
     st.session_state.df = load_markets()
 
@@ -418,8 +435,9 @@ df = st.session_state.df
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    politics_sentiment = df[df['category'].str.contains('Politic', na=False, case=False)]['sentiment'].mean()
-    politics_sentiment = politics_sentiment if pd.notna(politics_sentiment) else 0.5
+    # Use str.contains to catch variations like "Politics" or "Political" safely
+    politics_df = df[df['category'].str.contains('Politic', na=False, case=False)]
+    politics_sentiment = politics_df['sentiment'].mean() if not politics_df.empty else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">🏛️</div>
@@ -429,8 +447,8 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
-    crypto_sentiment = df[df['category'].str.contains('Crypto', na=False, case=False)]['sentiment'].mean()
-    crypto_sentiment = crypto_sentiment if pd.notna(crypto_sentiment) else 0.5
+    crypto_df = df[df['category'].str.contains('Crypto', na=False, case=False)]
+    crypto_sentiment = crypto_df['sentiment'].mean() if not crypto_df.empty else 0.5
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-icon">₿</div>
@@ -470,7 +488,6 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     with col1:
-        # Dynamic categories based on data payload
         cats = ["All"] + sorted(list(df['category'].unique()))
         category_filter = st.selectbox("Category", cats)
     with col2:
@@ -512,7 +529,7 @@ with tab2:
     except Exception:
         mock_data = []
         for cat in df['category'].unique():
-            mock_data.append({'Category': cat, 'Sentiment': df[df['category'] == cat]['sentiment'].mean(), 'Markets': 10, 'Volume': '$1,000,000'})
+            mock_data.append({'Category': cat, 'Sentiment': df[df['category'] == cat]['sentiment'].mean(), 'Markets': len(df[df['category'] == cat]), 'Volume': f"${df[df['category'] == cat]['volume'].sum():,}"})
         mock_data.append({'Category': 'OVERALL', 'Sentiment': df['sentiment'].mean(), 'Markets': len(df), 'Volume': f"${df['volume'].sum():,}"})
         sentiment_df = pd.DataFrame(mock_data)
 
