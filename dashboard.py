@@ -1,17 +1,18 @@
 import sys
 import os
 
-# Add src/ folder to sys.path (Streamlit Cloud needs this explicit add)
+# Explicitly add 'src/' folder to sys.path
+# This fixes ModuleNotFoundError and SyntaxError on relative imports like 'agents.crew'
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
 if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
-# Debug prints (remove or comment later)
-print("src_path added:", src_path)
-print("sys.path includes src:", any('src' in p for p in sys.path))
-print("cwd:", os.getcwd())
+# Debug prints (visible in Streamlit logs – comment out later if you want)
+print(f"Added src/ path: {src_path}")
+print(f"sys.path now includes src: {'src' in ' '.join(sys.path)}")
+print(f"Current working dir: {os.getcwd()}")
 
-# Absolute imports from src/
+# Now import everything from src/ using absolute paths
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
 from agents.crew import run_pulse_crew
