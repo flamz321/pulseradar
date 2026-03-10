@@ -1,11 +1,21 @@
-import streamlit as st
-import plotly.express as px
+import sys
 import os
 
-# Root-level imports (all files now in root or same-level)
+# Add src/agents/ to sys.path (only agents/ remains nested)
+agents_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src', 'agents'))
+if agents_dir not in sys.path:
+    sys.path.insert(0, agents_dir)
+
+print("Agents dir added to sys.path:", agents_dir)
+print("Current working dir:", os.getcwd())
+
+# Flat imports from root
 from fetcher import get_active_markets
 from sentiment import calculate_sentiment_score, get_category_indices
-from src.agents.crew import run_pulse_crew  # agents still nested, but import from root
+from crew import run_pulse_crew  # from src/agents/crew.py (after path add)
+
+import streamlit as st
+import plotly.express as px
 
 # Page config
 st.set_page_config(
@@ -85,23 +95,13 @@ with tab2:
 with tab3:
     st.subheader("🤖 Predictive Oracle Chat")
     if not any(os.getenv(k) for k in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GROQ_API_KEY"]):
-        st.warning(
-            "Add at least one LLM API key (OpenAI, Claude, Groq, etc.) "
-            "to Streamlit Secrets to unlock the Predictive Oracle agents."
-        )
+        st.warning("Add LLM API key in Secrets to enable Oracle.")
     else:
-        st.info(
-            "Ask the Oracle anything — e.g.\n"
-            "• Predict reaction to next Fed rate decision\n"
-            "• How will Trump news affect 2028 odds?\n"
-            "• What's the buzz around Bitcoin ETF markets?"
-        )
-
-        if prompt := st.chat_input("Ask the Oracle..."):
-            with st.spinner("Scanning markets + external signals..."):
+        st.info("Ask anything (e.g. 'Predict Fed rate reaction')")
+        if prompt := st.chat_input("Ask Oracle..."):
+            with st.spinner("Analyzing..."):
                 try:
                     report = run_pulse_crew(prompt)
                     st.markdown(report)
                 except Exception as e:
-                    st.error(f"Error running prediction: {str(e)}")
-                    st.info("Make sure your LLM API key is valid and you have internet access.")
+                    st.error(f"Prediction error: {str(e)}")
