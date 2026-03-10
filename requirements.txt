@@ -1,15 +1,11 @@
-# Existing lines...
-streamlit
-pandas
-plotly
-requests
-py-clob-client
-crewai
-langchain-openai
-python-dotenv
-langchain-community
-duckduckgo-search
-
-# ADD THESE (critical for langchain.tools and full langchain)
-langchain
-langchain-core
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+crewai>=0.1.0
+langchain>=0.1.0
+langchain-openai>=0.0.2
+langchain-community>=0.0.10
+duckduckgo-search>=4.1.1
+openai>=1.0.0
